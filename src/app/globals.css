@@ -1,0 +1,166 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ─── Google Fonts: Roboto ─── */
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap");
+
+/* ══════════════════════════════════════
+   Google AI Studio — Material You 3
+   Light: Google Material Light
+   Dark:  Google AI Studio (near-black)
+   ══════════════════════════════════════ */
+:root {
+  /* 배경 */
+  --color-bg:           #FFFFFF;
+  --color-surface:      #F8F9FA;  /* Google light surface */
+  --color-surface-solid:#F8F9FA;
+  --color-surface-2:    #F1F3F4;  /* Google secondary surface */
+  --color-surface-3:    #E8EAED;
+
+  /* 테두리 */
+  --color-border:       #E8EAED;
+  --color-border-strong:#DADCE0;
+
+  /* 텍스트 */
+  --color-text:         #202124;  /* Google primary text */
+  --color-text-muted:   #5F6368;  /* Google secondary text */
+  --color-text-faint:   #9AA0A6;  /* Google hint text */
+
+  /* 강조 (Google Blue) */
+  --color-accent:       #1A73E8;
+  --color-accent-hover: #1557B0;
+  --color-accent-light: rgba(26,115,232,0.08);
+  --color-accent-on:    #FFFFFF;
+
+  /* 사이드바 — Material NavigationDrawer (라이트) */
+  --color-sidebar-bg:         #FFFFFF;
+  --color-sidebar-border:     #E8EAED;
+  --color-sidebar-text:       #5F6368;
+  --color-sidebar-text-active:#1A73E8;
+  --color-sidebar-hover:      rgba(26,115,232,0.06);
+  --color-sidebar-active:     rgba(26,115,232,0.1);
+
+  /* 채널 컬러 */
+  --color-blogger:    #EA4335;  /* Google Red */
+  --color-naver:      #03C75A;
+  --color-social:     #E1306C;
+  --color-newsletter: #9C27B0;  /* Material Purple */
+  --color-queue:      #1A73E8;  /* Google Blue */
+  --color-cardnews:   #F9AB00;  /* Google Yellow */
+
+  /* 반경 — Material 3 */
+  --radius-xs:  4px;
+  --radius-sm:  8px;
+  --radius-md:  12px;
+  --radius-lg:  16px;
+  --radius-xl:  24px;
+  --radius-pill:100px;
+
+  /* 그림자 — Material Elevation */
+  --shadow-1: 0 1px 2px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04);
+  --shadow-2: 0 1px 2px rgba(0,0,0,0.1), 0 2px 6px rgba(0,0,0,0.06);
+  --shadow-3: 0 4px 8px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.06);
+}
+
+html.dark {
+  /* 배경 — Google AI Studio 다크 */
+  --color-bg:           #131314;  /* AI Studio 최외각 배경 */
+  --color-surface:      #1E1F20;  /* AI Studio 패널 */
+  --color-surface-solid:#1E1F20;
+  --color-surface-2:    #282A2C;  /* 입력 필드 배경 */
+  --color-surface-3:    #303134;
+
+  /* 테두리 */
+  --color-border:       rgba(255,255,255,0.1);
+  --color-border-strong:rgba(255,255,255,0.18);
+
+  /* 텍스트 */
+  --color-text:         #E3E3E3;  /* Google dark primary */
+  --color-text-muted:   #9AA0A6;  /* Google dark secondary */
+  --color-text-faint:   #5F6368;
+
+  /* 강조 — Google Blue dark mode */
+  --color-accent:       #A8C7FA;  /* Material You blue on dark */
+  --color-accent-hover: #C2D9FF;
+  --color-accent-light: rgba(168,199,250,0.12);
+  --color-accent-on:    #0B3675;
+
+  /* 사이드바 — AI Studio 다크 */
+  --color-sidebar-bg:        #1A1A1C;
+  --color-sidebar-border:    rgba(255,255,255,0.08);
+  --color-sidebar-text:      #9AA0A6;
+  --color-sidebar-text-active:#A8C7FA;
+  --color-sidebar-hover:     rgba(168,199,250,0.08);
+  --color-sidebar-active:    rgba(168,199,250,0.12);
+
+  /* 그림자 */
+  --shadow-1: 0 1px 2px rgba(0,0,0,0.4);
+  --shadow-2: 0 1px 2px rgba(0,0,0,0.5), 0 2px 6px rgba(0,0,0,0.3);
+  --shadow-3: 0 4px 8px rgba(0,0,0,0.5), 0 1px 3px rgba(0,0,0,0.3);
+}
+
+html {
+  color-scheme: light;
+}
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  /* Google Sans / Roboto 폰트 스택 */
+  font-family:
+    "Google Sans",
+    Roboto,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Noto Sans KR",
+    "Malgun Gothic",
+    sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ─── 스크롤바 — Google 스타일 ─── */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-faint);
+}
+
+/* ─── 포커스 — Material 3 ─── */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+
+/* ─── 모노 폰트 ─── */
+code, kbd, samp, pre {
+  font-family: "Roboto Mono", "Google Sans Mono", ui-monospace,
+    Menlo, Monaco, Consolas, monospace;
+  font-size: 0.875em;
+}
+
+/* ─── Gemini 그라데이션 유틸 ─── */
+.gemini-gradient {
+  background: linear-gradient(135deg, #4285F4 0%, #9B72CB 50%, #D96570 100%);
+}
+.gemini-gradient-text {
+  background: linear-gradient(135deg, #4285F4 0%, #9B72CB 50%, #D96570 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ─── Material 3 상태 레이어 ─── */
+.md-state-hover { transition: background-color 150ms ease; }
+.md-state-hover:hover { background-color: var(--color-sidebar-hover); }

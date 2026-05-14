@@ -1,0 +1,54 @@
+# Dependencies
+node_modules/
+
+# Build
+.next/
+out/
+dist/
+build/
+.turbo/
+
+# Environment (never commit secrets)
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Logs & debug
+*.log
+npm-debug.log*
+.pnpm-debug.log*
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Test / coverage
+coverage/
+.nyc_output/
+
+# Misc
+*.tsbuildinfo
+.vercel
+
+# Local vendor clone (marketingskills sync); do not commit
+_vendor/
+
+# Local SQLite (publish queue)
+data/*.sqlite
+data/*.sqlite-wal
+data/*.sqlite-shm
+
+# Generated marketing binaries under _output (text/md/html/json still trackable)
+_output/**/*.png
+_output/**/*.jpg
+_output/**/*.jpeg
+_output/**/*.webp
+_output/**/*.gif
+_output/**/*.mp4
+_output/**/*.mov
+_output/**/*.webm
+_output/**/*.pdf
