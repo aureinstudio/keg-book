@@ -3,6 +3,8 @@ import { listBufferChannels } from "@/lib/buffer/listBufferChannels";
 import { SocialWorkbench } from "./SocialWorkbench";
 import { PrefillFromGeneration } from "../PrefillFromGeneration";
 import { getGeneration } from "@/lib/db/generations";
+import { CardNewsResultView } from "../card-news/CardNewsResultView";
+import type { CardNewsContent } from "@/lib/gemini/generateCardNewsSlides";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "소셜 · Buffer — keg-book" };
@@ -36,6 +38,8 @@ export default async function SocialPage({ searchParams }: PageProps) {
   let initialTitle: string | undefined;
   let initialBody: string | undefined;
   let initialHashtags: string[] | undefined;
+  let cardNews: CardNewsContent | undefined;
+  let genKeyword: string | undefined;
 
   if (sp.from) {
     const gen = await getGeneration(sp.from).catch(() => null);
@@ -45,14 +49,20 @@ export default async function SocialPage({ searchParams }: PageProps) {
       const th = raw.threads as { text?: string } | undefined;
 
       initialTitle = gen.keyword;
+      genKeyword = gen.keyword;
       // 캡션과 Threads 텍스트를 HTML 본문 2단락으로 결합
       const parts: string[] = [];
       if (ig?.caption) parts.push(`<p>${escapeHtml(ig.caption).replace(/\n/g, "<br/>")}</p>`);
       if (th?.text) parts.push(`<p><strong>Threads:</strong> ${escapeHtml(th.text)}</p>`);
       if (parts.length > 0) initialBody = parts.join("\n");
       initialHashtags = ig?.hashtags;
+      cardNews = gen.raw_json?.cardNews;
     }
   }
+
+  // 인스타 탭에서만 카드뉴스 슬라이드 노출 (Threads는 텍스트 채널이므로 생략)
+  const showCardNews =
+    sp.channel !== "threads" && cardNews && (cardNews.slides?.length ?? 0) > 0;
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-8 pb-16">
@@ -95,6 +105,45 @@ export default async function SocialPage({ searchParams }: PageProps) {
         initialBody={initialBody}
         initialHashtags={initialHashtags}
       />
+
+      {showCardNews && cardNews && genKeyword && (
+        <section
+          className="mt-6 rounded-2xl p-5"
+          style={{
+            backgroundColor: "var(--color-surface)",
+            border: "1px solid var(--color-border)",
+          }}
+        >
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div>
+              <h2
+                className="text-[14px] font-medium"
+                style={{ color: "var(--color-text)" }}
+              >
+                📸 인스타그램 캐러셀 슬라이드{" "}
+                <span
+                  className="ml-1 text-[12px] font-normal"
+                  style={{ color: "var(--color-text-faint)" }}
+                >
+                  ({cardNews.slides.length})
+                </span>
+              </h2>
+              <p
+                className="mt-0.5 text-[11px]"
+                style={{ color: "var(--color-text-muted)" }}
+              >
+                각 슬라이드를 다운로드해 인스타에 캐러셀(여러 장)로 업로드하세요. 위 캡션·해시태그와 함께 사용.
+              </p>
+            </div>
+          </div>
+
+          <CardNewsResultView
+            keyword={genKeyword}
+            slides={cardNews.slides}
+            error={cardNews.error}
+          />
+        </section>
+      )}
     </div>
   );
 }
