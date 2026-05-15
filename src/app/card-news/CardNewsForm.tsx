@@ -16,16 +16,24 @@ const inputStyle = {
 };
 
 export function CardNewsForm() {
-  const [state, formAction, isPending] = useActionState<CardNewsFormState, FormData>(
-    generateCardNewsFormAction,
-    null,
-  );
+  const [state, formAction, isPending] = useActionState<
+    CardNewsFormState,
+    FormData
+  >(generateCardNewsFormAction, null);
+
+  const imgSrc =
+    state && state.ok && (state.imageUrl || state.imageBase64)
+      ? state.imageUrl ?? `data:image/png;base64,${state.imageBase64}`
+      : null;
 
   return (
     <div className="flex flex-col gap-5">
       <form action={formAction} className="flex flex-col gap-4">
         <label className="flex flex-col gap-1.5">
-          <span className="text-xs font-medium" style={{ color: "var(--color-text-muted)" }}>
+          <span
+            className="text-xs font-medium"
+            style={{ color: "var(--color-text-muted)" }}
+          >
             파일명 접두 (영문·숫자 권장)
           </span>
           <input
@@ -37,7 +45,10 @@ export function CardNewsForm() {
           />
         </label>
         <label className="flex flex-col gap-1.5">
-          <span className="text-xs font-medium" style={{ color: "var(--color-text-muted)" }}>
+          <span
+            className="text-xs font-medium"
+            style={{ color: "var(--color-text-muted)" }}
+          >
             이미지 프롬프트 (Gemini)
           </span>
           <textarea
@@ -54,7 +65,7 @@ export function CardNewsForm() {
           className="w-fit rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors hover:opacity-90 disabled:opacity-50"
           style={{ backgroundColor: "#D97706" }}
         >
-          {isPending ? "처리 중…" : "프롬프트 저장 + (키 있으면) 이미지 생성"}
+          {isPending ? "처리 중…" : "이미지 생성"}
         </button>
       </form>
 
@@ -63,54 +74,82 @@ export function CardNewsForm() {
           className="rounded-lg p-4 text-sm"
           style={
             state.ok
-              ? { backgroundColor: "#ECFDF5", border: "1px solid #A7F3D0", color: "#065F46" }
-              : { backgroundColor: "#FFFBEB", border: "1px solid #FCD34D", color: "#92400E" }
+              ? {
+                  backgroundColor: "#ECFDF5",
+                  border: "1px solid #A7F3D0",
+                  color: "#065F46",
+                }
+              : {
+                  backgroundColor: "#FEF2F2",
+                  border: "1px solid #FECACA",
+                  color: "#991B1B",
+                }
           }
           role="status"
         >
           {state.ok ? (
             <>
-              <p>프롬프트 저장: {state.promptPath}</p>
-              {state.skippedImage && (
-                <p className="mt-2 opacity-90">
+              {state.skippedImage ? (
+                <p>
                   <code
                     className="rounded px-1 py-0.5"
                     style={{ backgroundColor: "rgba(0,0,0,0.08)" }}
                   >
                     GEMINI_API_KEY
                   </code>
-                  가 없어 이미지는 건너뜁니다. 키를 넣은 뒤 다시 실행하면{" "}
-                  <code
-                    className="rounded px-1 py-0.5"
-                    style={{ backgroundColor: "rgba(0,0,0,0.08)" }}
+                  가 없어 이미지는 건너뜁니다. 환경 변수를 추가하고 다시 시도하세요.
+                </p>
+              ) : imgSrc ? (
+                <div className="flex flex-col gap-3">
+                  <p>
+                    이미지 생성 완료:{" "}
+                    <code className="text-xs" style={{ opacity: 0.9 }}>
+                      {state.filename}
+                    </code>
+                  </p>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={imgSrc}
+                    alt={state.filename}
+                    className="w-full rounded-md"
+                    style={{ border: "1px solid rgba(0,0,0,0.1)" }}
+                  />
+                  <a
+                    href={imgSrc}
+                    download={state.filename}
+                    className="w-fit rounded-md px-3 py-1.5 text-xs font-medium text-white"
+                    style={{ backgroundColor: "#D97706" }}
                   >
-                    _output/card-news/*.png
-                  </code>
-                  에 저장됩니다.
-                </p>
-              )}
-              {state.pngPath && (
-                <p className="mt-2">
-                  이미지:{" "}
-                  <code className="text-xs" style={{ opacity: 0.9 }}>
-                    {state.pngPath}
-                  </code>
-                </p>
+                    ↓ PNG 다운로드
+                  </a>
+                  {state.imageUrl && (
+                    <p className="text-[11px]" style={{ opacity: 0.75 }}>
+                      Supabase Storage 저장됨 · 공개 URL 다운로드 사용 가능
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <p>이미지 생성에 실패했습니다.</p>
               )}
             </>
           ) : (
-            <>
-              {state.error && <p>{state.error}</p>}
-              {state.promptPath && (
-                <p className="mt-2 text-xs opacity-80">프롬프트는 저장됨: {state.promptPath}</p>
-              )}
-            </>
+            <p>{state.error}</p>
           )}
         </div>
       )}
 
       <p className="text-xs" style={{ color: "var(--color-text-faint)" }}>
-        생성 이미지는 SynthID 워터마크가 포함될 수 있습니다. 약관·표시광고·교재 표기 가이드를 따르세요.
+        생성 이미지는 SynthID 워터마크가 포함될 수 있습니다. 약관·표시광고·교재
+        표기 가이드를 따르세요. ·{" "}
+        <strong>여러 슬라이드를 한 번에 생성</strong>하려면{" "}
+        <a
+          href="/generate"
+          className="underline"
+          style={{ color: "var(--color-text-muted)" }}
+        >
+          /generate
+        </a>{" "}
+        를 사용하세요.
       </p>
     </div>
   );

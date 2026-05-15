@@ -142,11 +142,12 @@ export default async function HistoryPage() {
                     </div>
                     <div className="flex flex-wrap gap-1.5">
                       {[
-                        { ch: "blogger", path: "/" },
+                        { ch: "blogger", path: "/blogger" },
                         { ch: "naver", path: "/naver" },
                         { ch: "newsletter", path: "/newsletter" },
                         { ch: "instagram", path: "/social" },
                         { ch: "threads", path: "/social" },
+                        { ch: "card-news", path: "/card-news" },
                       ].map((c) => {
                         const cfg = CHANNEL_LABELS[c.ch];
                         return (
