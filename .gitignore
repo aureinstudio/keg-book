@@ -52,3 +52,5 @@ _output/**/*.mp4
 _output/**/*.mov
 _output/**/*.webm
 _output/**/*.pdf
+
+.vercel

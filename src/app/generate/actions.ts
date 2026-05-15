@@ -24,9 +24,12 @@ export async function generateContentAction(formData: FormData): Promise<Generat
     };
   }
 
+  const anthropicApiKey = process.env.ANTHROPIC_API_KEY || undefined;
+
   try {
     const data = await generateAllChannels({
       apiKey,
+      anthropicApiKey,
       keyword,
       productName,
       targetAudience,
