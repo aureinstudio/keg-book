@@ -185,6 +185,118 @@ function ThreadsCard({ data }: { data: ChannelContent["threads"] }) {
   );
 }
 
+// ───── 카드뉴스: Canvas로 헤드라인 합성 후 PNG 다운로드 ─────
+
+function wrapKoreanText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+): string[] {
+  const lines: string[] = [];
+  let cur = "";
+  for (const ch of text) {
+    const test = cur + ch;
+    if (ctx.measureText(test).width > maxWidth && cur) {
+      lines.push(cur);
+      cur = ch;
+    } else {
+      cur = test;
+    }
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
+
+async function composeCardPng(
+  imgSrc: string,
+  headline: string,
+  isCover: boolean,
+): Promise<Blob> {
+  const img = new Image();
+  // Supabase 공개 버킷 / base64 모두 anonymous 로 안전
+  img.crossOrigin = "anonymous";
+  await new Promise<void>((resolve, reject) => {
+    img.onload = () => resolve();
+    img.onerror = () => reject(new Error("이미지를 불러올 수 없습니다"));
+    img.src = imgSrc;
+  });
+
+  const W = img.naturalWidth || 1080;
+  const H = img.naturalHeight || Math.round((W * 5) / 4);
+  const canvas = document.createElement("canvas");
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas 컨텍스트를 만들 수 없습니다");
+
+  // 배경 이미지
+  ctx.drawImage(img, 0, 0, W, H);
+
+  // 하단 그라데이션
+  const grad = ctx.createLinearGradient(0, H * 0.35, 0, H);
+  grad.addColorStop(0, "rgba(0,0,0,0)");
+  grad.addColorStop(0.6, "rgba(0,0,0,0.55)");
+  grad.addColorStop(1, "rgba(0,0,0,0.85)");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+
+  // 헤드라인 — cover는 더 크게
+  const fontSize = Math.round(W * (isCover ? 0.085 : 0.065));
+  const lineHeight = Math.round(fontSize * 1.25);
+  const padX = Math.round(W * 0.07);
+  const padBottom = Math.round(H * 0.08);
+  const maxWidth = W - padX * 2;
+
+  ctx.font = `700 ${fontSize}px "Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif`;
+  ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = "#ffffff";
+  ctx.shadowColor = "rgba(0,0,0,0.45)";
+  ctx.shadowBlur = Math.round(fontSize * 0.25);
+  ctx.shadowOffsetY = Math.round(fontSize * 0.05);
+
+  const lines = wrapKoreanText(ctx, headline, maxWidth);
+  const startY = H - padBottom - lineHeight * (lines.length - 1);
+  for (let i = 0; i < lines.length; i++) {
+    ctx.fillText(lines[i], padX, startY + lineHeight * i);
+  }
+
+  return await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => (blob ? resolve(blob) : reject(new Error("PNG 변환 실패"))),
+      "image/png",
+      0.95,
+    );
+  });
+}
+
+async function downloadComposedCard(
+  imgSrc: string,
+  headline: string,
+  isCover: boolean,
+  filename: string,
+) {
+  try {
+    const blob = await composeCardPng(imgSrc, headline, isCover);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (e) {
+    console.error(e);
+    // CORS 등 실패 시 원본 이미지 그대로 다운로드 (텍스트 없음)
+    const a = document.createElement("a");
+    a.href = imgSrc;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+}
+
 function CardNewsCard({ data }: { data: NonNullable<ChannelContent["cardNews"]> }) {
   if (!data.slides.length) {
     return (
@@ -202,10 +314,12 @@ function CardNewsCard({ data }: { data: NonNullable<ChannelContent["cardNews"]> 
           ⚠ {data.error}
         </div>
       )}
-      <p className="text-[11px] font-medium uppercase tracking-wider"
-        style={{ color: "var(--color-text-faint)" }}>
-        슬라이드 {data.slides.length}장
-      </p>
+      <div className="flex items-center justify-between">
+        <p className="text-[11px] font-medium uppercase tracking-wider"
+          style={{ color: "var(--color-text-faint)" }}>
+          슬라이드 {data.slides.length}장 · 헤드라인 포함 PNG
+        </p>
+      </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {data.slides.map((slide, i) => {
           const src = slide.imageUrl
@@ -213,13 +327,15 @@ function CardNewsCard({ data }: { data: NonNullable<ChannelContent["cardNews"]> 
             : slide.imageBase64
             ? `data:image/png;base64,${slide.imageBase64}`
             : null;
+          const isCover = slide.role === "cover";
+          const roleLabel = isCover ? "표지" : slide.role === "outro" ? "마무리" : `본문 ${i}`;
           return (
             <div key={i} className="overflow-hidden rounded-xl"
               style={{ border: "1px solid var(--color-border)" }}>
               <div className="relative" style={{ aspectRatio: "4 / 5", backgroundColor: "var(--color-surface-2)" }}>
                 {src ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={src} alt={slide.headline}
+                  <img src={src} alt={slide.headline} crossOrigin="anonymous"
                     style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 ) : (
                   <div className="flex h-full items-center justify-center text-[11px]"
@@ -227,31 +343,49 @@ function CardNewsCard({ data }: { data: NonNullable<ChannelContent["cardNews"]> 
                     이미지 생성 실패
                   </div>
                 )}
-                <div className="absolute inset-x-0 top-0 p-3"
-                  style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.55) 0%, transparent 100%)" }}>
-                  <p className="text-[13px] font-medium text-white leading-snug">
-                    {slide.headline}
-                  </p>
+                {/* 상단 역할 배지 */}
+                <div className="absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-medium text-white"
+                  style={{ backgroundColor: "rgba(0,0,0,0.55)" }}>
+                  {roleLabel}
                 </div>
-                <div className="absolute right-2 bottom-2 rounded-full px-2 py-0.5 text-[10px] font-medium text-white"
+                <div className="absolute right-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-medium text-white"
                   style={{ backgroundColor: "rgba(0,0,0,0.55)" }}>
                   {i + 1}/{data.slides.length}
                 </div>
+                {/* 하단 그라데이션 + 헤드라인 (다운로드 PNG와 동일 레이아웃) */}
+                <div className="absolute inset-x-0 bottom-0 px-4 pb-4 pt-10"
+                  style={{
+                    background:
+                      "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 55%, rgba(0,0,0,0.85) 100%)",
+                  }}>
+                  <p
+                    className="font-bold text-white leading-tight"
+                    style={{
+                      fontSize: isCover ? "20px" : "16px",
+                      textShadow: "0 1px 3px rgba(0,0,0,0.5)",
+                      letterSpacing: "-0.01em",
+                    }}>
+                    {slide.headline}
+                  </p>
+                </div>
               </div>
               <div className="p-3 space-y-1.5">
-                <p className="text-[11px] font-medium uppercase tracking-wider"
-                  style={{ color: "var(--color-text-faint)" }}>
-                  {slide.role === "cover" ? "표지" : slide.role === "outro" ? "마무리" : `본문 ${i}`}
+                <p className="text-[12px] font-medium" style={{ color: "var(--color-text)" }}>
+                  {slide.headline}
                 </p>
-                <p className="text-[12px] line-clamp-2" style={{ color: "var(--color-text-muted)" }}>
+                <p className="text-[11px] line-clamp-2" style={{ color: "var(--color-text-faint)" }}>
                   {slide.imagePrompt}
                 </p>
                 {src && (
-                  <a href={src} download={`slide_${i + 1}.png`}
-                    className="inline-flex items-center gap-1 text-[11px] font-medium"
+                  <button
+                    type="button"
+                    onClick={() =>
+                      downloadComposedCard(src, slide.headline, isCover, `slide_${i + 1}.png`)
+                    }
+                    className="inline-flex items-center gap-1 text-[11px] font-medium hover:underline"
                     style={{ color: "#F9AB00" }}>
-                    ↓ 다운로드
-                  </a>
+                    ↓ 헤드라인 포함 PNG 다운로드
+                  </button>
                 )}
               </div>
             </div>
