@@ -8,16 +8,16 @@ import { useEffect, useMemo, useState, useTransition } from "react";
 
 function rangeColor(len: number, min: number, max: number) {
   if (len === 0) return "var(--color-text-faint)";
-  if (len < min) return "#F9AB00";
-  if (len <= max) return "#34A853";
-  return "#EA4335";
+  if (len < min) return "#737373";
+  if (len <= max) return "#404040";
+  return "#262626";
 }
 
 function Dot({ ok }: { ok: boolean }) {
   return (
     <span
       className="inline-block h-2 w-2 rounded-full shrink-0 mt-0.5"
-      style={{ backgroundColor: ok ? "#34A853" : "#F9AB00" }}
+      style={{ backgroundColor: ok ? "#404040" : "#737373" }}
     />
   );
 }
@@ -144,8 +144,8 @@ export function SocialWorkbench({
           onClick={() => setSeoOpen((v) => !v)}
           className="flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium"
           style={{
-            backgroundColor: seoOpen ? "rgba(225,48,108,0.1)" : "var(--color-surface-2)",
-            color: seoOpen ? "#E1306C" : "var(--color-text-muted)",
+            backgroundColor: seoOpen ? "rgba(64,64,64,0.1)" : "var(--color-surface-2)",
+            color: seoOpen ? "#404040" : "var(--color-text-muted)",
             border: "1px solid var(--color-border)",
           }}
         >
@@ -176,7 +176,7 @@ export function SocialWorkbench({
       )}
 
       {copyHint && (
-        <p className="rounded-lg px-3 py-2 text-sm" style={{ backgroundColor: "#ECFDF5", color: "#065F46" }} role="status">
+        <p className="rounded-lg px-3 py-2 text-sm" style={{ backgroundColor: "#F5F5F5", color: "#171717" }} role="status">
           {copyHint}
         </p>
       )}
@@ -184,8 +184,8 @@ export function SocialWorkbench({
         <p
           className="rounded-lg px-3 py-2 text-sm"
           style={{
-            backgroundColor: saveMsg.startsWith("저장:") ? "#EFF6FF" : "#FFFBEB",
-            color: saveMsg.startsWith("저장:") ? "#1E40AF" : "#92400E",
+            backgroundColor: saveMsg.startsWith("저장:") ? "#EFF6FF" : "#FAFAFA",
+            color: saveMsg.startsWith("저장:") ? "#1E40AF" : "#404040",
           }}
           role="status"
         >
@@ -249,7 +249,7 @@ export function SocialWorkbench({
                 <span
                   key={t}
                   className="rounded-full px-2 py-0.5 text-[11px]"
-                  style={{ backgroundColor: "rgba(225,48,108,0.1)", color: "#E1306C" }}
+                  style={{ backgroundColor: "rgba(64,64,64,0.1)", color: "#404040" }}
                 >
                   #{t}
                 </span>
@@ -267,7 +267,7 @@ export function SocialWorkbench({
         <div className="mb-3 flex items-center gap-2">
           <span
             className="flex h-5 w-5 items-center justify-center rounded text-[10px] font-bold text-white"
-            style={{ backgroundColor: "#E1306C" }}
+            style={{ backgroundColor: "#404040" }}
           >
             I
           </span>
@@ -301,7 +301,7 @@ export function SocialWorkbench({
             type="button"
             onClick={() => void copyText("인스타 캡션", captionWithTags)}
             className="rounded-lg px-3 py-1.5 text-sm font-medium text-white transition-colors hover:opacity-90"
-            style={{ backgroundColor: "#E1306C" }}
+            style={{ backgroundColor: "#404040" }}
           >
             캡션 복사
           </button>
@@ -426,7 +426,7 @@ export function SocialWorkbench({
           </p>
         )}
         {bufferTokenConfigured && bufferListError && (
-          <p className="text-xs" style={{ color: "#D97706" }} role="alert">
+          <p className="text-xs" style={{ color: "#171717" }} role="alert">
             채널 목록 오류: {bufferListError}
           </p>
         )}

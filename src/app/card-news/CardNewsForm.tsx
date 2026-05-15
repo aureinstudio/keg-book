@@ -63,7 +63,7 @@ export function CardNewsForm() {
           type="submit"
           disabled={isPending}
           className="w-fit rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors hover:opacity-90 disabled:opacity-50"
-          style={{ backgroundColor: "#D97706" }}
+          style={{ backgroundColor: "#171717" }}
         >
           {isPending ? "처리 중…" : "이미지 생성"}
         </button>
@@ -75,14 +75,14 @@ export function CardNewsForm() {
           style={
             state.ok
               ? {
-                  backgroundColor: "#ECFDF5",
-                  border: "1px solid #A7F3D0",
-                  color: "#065F46",
+                  backgroundColor: "#F5F5F5",
+                  border: "1px solid #D4D4D4",
+                  color: "#171717",
                 }
               : {
-                  backgroundColor: "#FEF2F2",
-                  border: "1px solid #FECACA",
-                  color: "#991B1B",
+                  backgroundColor: "#FAFAFA",
+                  border: "1px solid #E5E5E5",
+                  color: "#171717",
                 }
           }
           role="status"
@@ -118,7 +118,7 @@ export function CardNewsForm() {
                     href={imgSrc}
                     download={state.filename}
                     className="w-fit rounded-md px-3 py-1.5 text-xs font-medium text-white"
-                    style={{ backgroundColor: "#D97706" }}
+                    style={{ backgroundColor: "#171717" }}
                   >
                     ↓ PNG 다운로드
                   </a>

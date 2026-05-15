@@ -38,7 +38,7 @@ export default async function NaverAssistPage({
     <div className="mx-auto max-w-3xl px-6 py-8 pb-16">
       <div className="mb-7 flex items-center gap-3">
         <span className="flex h-9 w-9 items-center justify-center rounded-lg text-[14px] font-bold text-white"
-          style={{ backgroundColor: "#03C75A" }}>N</span>
+          style={{ backgroundColor: "#525252" }}>N</span>
         <div>
           <h1 className="text-[18px] font-normal" style={{ color: "var(--color-text)" }}>네이버 블로그</h1>
           <p className="text-[12px]" style={{ color: "var(--color-text-muted)" }}>공식 API 없음 — HTML 생성 · 복사 보조 · 수동 게시</p>
@@ -58,8 +58,8 @@ export default async function NaverAssistPage({
         </div>
 
         {/* 체크리스트 */}
-        <div style={{ backgroundColor: "rgba(249,171,0,0.06)", border: "1px solid rgba(249,171,0,0.2)", borderRadius: "12px", padding: "18px 20px" }}>
-          <h2 className="mb-3 text-[13px] font-medium" style={{ color: "#B45309" }}>발행 전 체크리스트</h2>
+        <div style={{ backgroundColor: "rgba(115,115,115,0.06)", border: "1px solid rgba(115,115,115,0.2)", borderRadius: "12px", padding: "18px 20px" }}>
+          <h2 className="mb-3 text-[13px] font-medium" style={{ color: "#525252" }}>발행 전 체크리스트</h2>
           <ul className="space-y-2.5">
             {[
               "네이버 블로그 글쓰기에서 HTML·소스 붙여넣기 모드 확인",
@@ -67,9 +67,9 @@ export default async function NaverAssistPage({
               "표기광고·저작권·교재 표기 등 내부 가이드 반영",
               "미리보기에서 깨진 태그·링크 없는지 확인",
             ].map((item, i) => (
-              <li key={i} className="flex items-start gap-2.5 text-[13px]" style={{ color: "#B45309" }}>
+              <li key={i} className="flex items-start gap-2.5 text-[13px]" style={{ color: "#525252" }}>
                 <span className="mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white"
-                  style={{ backgroundColor: "#F9AB00" }}>
+                  style={{ backgroundColor: "#737373" }}>
                   {i + 1}
                 </span>
                 {item}

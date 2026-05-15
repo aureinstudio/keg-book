@@ -36,7 +36,7 @@ export async function PrefillFromGeneration({
           className="mb-6 rounded-2xl px-5 py-4"
           style={{
             background:
-              "linear-gradient(135deg, rgba(66,133,244,0.06) 0%, rgba(156,39,176,0.06) 100%)",
+              "linear-gradient(135deg, rgba(10,10,10,0.06) 0%, rgba(82,82,82,0.06) 100%)",
             border: "1px solid var(--color-border)",
           }}
         >
@@ -46,8 +46,8 @@ export async function PrefillFromGeneration({
                 <span
                   className="rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider"
                   style={{
-                    backgroundColor: "rgba(66,133,244,0.12)",
-                    color: "#4285F4",
+                    backgroundColor: "rgba(10,10,10,0.12)",
+                    color: "#0A0A0A",
                   }}
                 >
                   생성에서 불러옴
@@ -98,7 +98,7 @@ export async function PrefillFromGeneration({
           <Link
             href="/generate"
             className="font-medium underline"
-            style={{ color: "#4285F4" }}
+            style={{ color: "#0A0A0A" }}
           >
             ✦ 콘텐츠 생성
           </Link>

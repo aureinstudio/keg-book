@@ -56,7 +56,7 @@ export default async function LoginPage({ searchParams }: PageProps) {
         <div className="mb-6 flex items-center gap-2.5">
           <div
             className="flex h-9 w-9 items-center justify-center rounded-xl text-[13px] font-bold text-white"
-            style={{ background: "linear-gradient(135deg, #4285F4 0%, #9C27B0 100%)" }}
+            style={{ background: "linear-gradient(135deg, #0A0A0A 0%, #525252 100%)" }}
           >
             K
           </div>
@@ -79,7 +79,7 @@ export default async function LoginPage({ searchParams }: PageProps) {
           <br />
           <span
             style={{
-              background: "linear-gradient(135deg, #4285F4 0%, #9C27B0 100%)",
+              background: "linear-gradient(135deg, #0A0A0A 0%, #525252 100%)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
@@ -106,13 +106,13 @@ export default async function LoginPage({ searchParams }: PageProps) {
           }}
         >
           <li className="flex items-start gap-2">
-            <span style={{ color: "#4285F4" }}>·</span>
+            <span style={{ color: "#0A0A0A" }}>·</span>
             <span>
               <strong style={{ color: "var(--color-text)" }}>이메일·프로필</strong> — 작업 기록 식별용
             </span>
           </li>
           <li className="flex items-start gap-2">
-            <span style={{ color: "#EA4335" }}>·</span>
+            <span style={{ color: "#262626" }}>·</span>
             <span>
               <strong style={{ color: "var(--color-text)" }}>Blogger API</strong> — 초안 작성·발행 권한
             </span>
@@ -133,13 +133,13 @@ export default async function LoginPage({ searchParams }: PageProps) {
             type="submit"
             className="flex w-full items-center justify-center gap-2.5 rounded-full px-6 py-3 text-[14px] font-medium text-white transition-all"
             style={{
-              background: "linear-gradient(135deg, #4285F4 0%, #9C27B0 100%)",
+              background: "linear-gradient(135deg, #0A0A0A 0%, #525252 100%)",
               boxShadow: "var(--shadow-2)",
             }}
           >
             <span
               className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-[11px] font-bold"
-              style={{ color: "#4285F4" }}
+              style={{ color: "#0A0A0A" }}
             >
               G
             </span>
@@ -158,7 +158,7 @@ export default async function LoginPage({ searchParams }: PageProps) {
           <Link
             href="/naver"
             className="hover:underline"
-            style={{ color: "#03C75A" }}
+            style={{ color: "#525252" }}
           >
             네이버 패널 (로그인 불필요) →
           </Link>

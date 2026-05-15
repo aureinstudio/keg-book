@@ -22,24 +22,24 @@ const navSections: NavSection[] = [
     label: "시작",
     items: [
       { href: "/",         label: "홈",         icon: "K", color: "#5F6368" },
-      { href: "/generate", label: "콘텐츠 생성", icon: "✦", color: "#4285F4" },
+      { href: "/generate", label: "콘텐츠 생성", icon: "✦", color: "#0A0A0A" },
     ],
   },
   {
     label: "채널",
     items: [
-      { href: "/blogger",       label: "Blogger",  icon: "B", color: "#EA4335" },
-      { href: "/naver",         label: "네이버",   icon: "N", color: "#03C75A" },
-      { href: "/social",        label: "소셜",     icon: "S", color: "#E1306C" },
-      { href: "/newsletter",    label: "뉴스레터", icon: "M", color: "#9C27B0" },
-      { href: "/card-news",     label: "카드뉴스", icon: "C", color: "#F9AB00" },
+      { href: "/blogger",       label: "Blogger",  icon: "B", color: "#262626" },
+      { href: "/naver",         label: "네이버",   icon: "N", color: "#525252" },
+      { href: "/social",        label: "소셜",     icon: "S", color: "#404040" },
+      { href: "/newsletter",    label: "뉴스레터", icon: "M", color: "#525252" },
+      { href: "/card-news",     label: "카드뉴스", icon: "C", color: "#737373" },
     ],
   },
   {
     label: "관리",
     items: [
       { href: "/history",       label: "작업 기록", icon: "H", color: "#5F6368" },
-      { href: "/publish-queue", label: "발행 큐",  icon: "Q", color: "#1A73E8" },
+      { href: "/publish-queue", label: "발행 큐",  icon: "Q", color: "#0A0A0A" },
     ],
   },
 ];
@@ -106,12 +106,12 @@ export function AppSidebar({ userBadge }: { userBadge?: ReactNode }) {
                       style={{
                         backgroundColor: isActive
                           ? isGenerate
-                            ? "rgba(66,133,244,0.12)"
+                            ? "rgba(10,10,10,0.12)"
                             : "var(--color-sidebar-active)"
                           : "transparent",
                         color: isActive
                           ? isGenerate
-                            ? "#4285F4"
+                            ? "#0A0A0A"
                             : "var(--color-sidebar-text-active)"
                           : "var(--color-sidebar-text)",
                       }}
@@ -132,7 +132,7 @@ export function AppSidebar({ userBadge }: { userBadge?: ReactNode }) {
                         <span
                           className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[4px] text-[9px] font-bold text-white"
                           style={{
-                            background: "linear-gradient(135deg, #4285F4 0%, #9C27B0 100%)",
+                            background: "linear-gradient(135deg, #0A0A0A 0%, #525252 100%)",
                             opacity: isActive ? 1 : 0.85,
                           }}
                         >
@@ -154,7 +154,7 @@ export function AppSidebar({ userBadge }: { userBadge?: ReactNode }) {
                       {isActive && (
                         <span
                           className="ml-auto h-1.5 w-1.5 rounded-full shrink-0"
-                          style={{ backgroundColor: isGenerate ? "#4285F4" : "var(--color-accent)" }}
+                          style={{ backgroundColor: isGenerate ? "#0A0A0A" : "var(--color-accent)" }}
                         />
                       )}
                     </Link>

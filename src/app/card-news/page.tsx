@@ -23,7 +23,7 @@ export default async function CardNewsPage({
       <div className="mb-7 flex items-center gap-3">
         <span
           className="flex h-9 w-9 items-center justify-center rounded-lg text-[14px] font-bold text-white"
-          style={{ backgroundColor: "#F9AB00" }}
+          style={{ backgroundColor: "#737373" }}
         >
           C
         </span>

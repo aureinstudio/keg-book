@@ -15,13 +15,13 @@ const inputStyle = {
 
 function rangeColor(len: number, min: number, max: number) {
   if (len === 0) return "var(--color-text-faint)";
-  if (len < min) return "#F9AB00";
-  if (len <= max) return "#34A853";
-  return "#EA4335";
+  if (len < min) return "#737373";
+  if (len <= max) return "#404040";
+  return "#262626";
 }
 
 function Dot({ ok }: { ok: boolean | null }) {
-  const color = ok === null ? "var(--color-text-faint)" : ok ? "#34A853" : "#F9AB00";
+  const color = ok === null ? "var(--color-text-faint)" : ok ? "#404040" : "#737373";
   return <span className="inline-block h-2 w-2 rounded-full shrink-0 mt-1" style={{ backgroundColor: color }} />;
 }
 
@@ -122,8 +122,8 @@ export function NaverExportPanel({
           onClick={() => setSeoOpen((v) => !v)}
           className="flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium"
           style={{
-            backgroundColor: seoOpen ? "rgba(3,199,90,0.1)" : "var(--color-surface-2)",
-            color: seoOpen ? "#03C75A" : "var(--color-text-muted)",
+            backgroundColor: seoOpen ? "rgba(82,82,82,0.1)" : "var(--color-surface-2)",
+            color: seoOpen ? "#525252" : "var(--color-text-muted)",
             border: "1px solid var(--color-border)",
           }}
         >
@@ -220,7 +220,7 @@ export function NaverExportPanel({
               <span
                 key={t}
                 className="rounded-full px-2 py-0.5 text-[11px]"
-                style={{ backgroundColor: "rgba(3,199,90,0.1)", color: "#03C75A" }}
+                style={{ backgroundColor: "rgba(82,82,82,0.1)", color: "#525252" }}
               >
                 #{t}
               </span>
@@ -248,7 +248,7 @@ export function NaverExportPanel({
           type="button"
           onClick={() => void copyExport()}
           className="rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors hover:opacity-90"
-          style={{ backgroundColor: "#03C75A" }}
+          style={{ backgroundColor: "#525252" }}
           aria-label="생성된 HTML을 클립보드에 복사"
         >
           HTML 전체 복사
@@ -259,7 +259,7 @@ export function NaverExportPanel({
           </span>
         )}
         {copyState === "err" && (
-          <span className="text-sm" style={{ color: "#D97706" }} role="alert">
+          <span className="text-sm" style={{ color: "#171717" }} role="alert">
             복사에 실패했습니다. 아래 상자에서 직접 선택해 복사해 보세요.
           </span>
         )}

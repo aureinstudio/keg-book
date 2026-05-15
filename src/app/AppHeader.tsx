@@ -25,7 +25,7 @@ export function AppHeader() {
           <Link href="/" className={link}>
             Blogger
           </Link>
-          <Link href="/naver" className={`${link} hover:text-[#03C75A]`}>
+          <Link href="/naver" className={`${link} hover:text-[#525252]`}>
             네이버
           </Link>
           <Link href="/social" className={`${link} hover:text-pink-600 dark:hover:text-pink-300`}>

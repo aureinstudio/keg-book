@@ -19,7 +19,7 @@ export async function UserBadge() {
       >
         <span
           className="flex h-[18px] w-[18px] items-center justify-center rounded-full text-[10px] font-bold text-white"
-          style={{ backgroundColor: "#4285F4" }}
+          style={{ backgroundColor: "#0A0A0A" }}
         >
           G
         </span>
@@ -42,7 +42,7 @@ export async function UserBadge() {
       ) : (
         <div
           className="flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-bold text-white"
-          style={{ background: "linear-gradient(135deg, #4285F4 0%, #9C27B0 100%)" }}
+          style={{ background: "linear-gradient(135deg, #0A0A0A 0%, #525252 100%)" }}
         >
           {initial}
         </div>

@@ -9,7 +9,7 @@ export default function PublishQueuePage() {
     <div className="mx-auto max-w-5xl px-6 py-8 pb-16">
       <div className="mb-7 flex items-center gap-3">
         <span className="flex h-9 w-9 items-center justify-center rounded-lg text-[14px] font-bold text-white"
-          style={{ backgroundColor: "#1A73E8" }}>Q</span>
+          style={{ backgroundColor: "#0A0A0A" }}>Q</span>
         <div>
           <h1 className="text-[18px] font-normal" style={{ color: "var(--color-text)" }}>발행 큐</h1>
           <p className="text-[12px]" style={{ color: "var(--color-text-muted)" }}>

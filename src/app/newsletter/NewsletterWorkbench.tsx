@@ -19,16 +19,16 @@ const inputStyle = {
 
 function rangeColor(len: number, min: number, max: number) {
   if (len === 0) return "var(--color-text-faint)";
-  if (len < min) return "#F9AB00";
-  if (len <= max) return "#34A853";
-  return "#EA4335";
+  if (len < min) return "#737373";
+  if (len <= max) return "#404040";
+  return "#262626";
 }
 
 function Dot({ ok }: { ok: boolean }) {
   return (
     <span
       className="inline-block h-2 w-2 rounded-full shrink-0 mt-1"
-      style={{ backgroundColor: ok ? "#34A853" : "#F9AB00" }}
+      style={{ backgroundColor: ok ? "#404040" : "#737373" }}
     />
   );
 }
@@ -117,8 +117,8 @@ export function NewsletterWorkbench({
           onClick={() => setSeoOpen((v) => !v)}
           className="flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium"
           style={{
-            backgroundColor: seoOpen ? "rgba(156,39,176,0.1)" : "var(--color-surface-2)",
-            color: seoOpen ? "#9C27B0" : "var(--color-text-muted)",
+            backgroundColor: seoOpen ? "rgba(82,82,82,0.1)" : "var(--color-surface-2)",
+            color: seoOpen ? "#525252" : "var(--color-text-muted)",
             border: "1px solid var(--color-border)",
           }}
         >
@@ -151,7 +151,7 @@ export function NewsletterWorkbench({
       {copyHint && (
         <p
           className="rounded-lg px-3 py-2 text-sm"
-          style={{ backgroundColor: "#ECFDF5", color: "#065F46" }}
+          style={{ backgroundColor: "#F5F5F5", color: "#171717" }}
           role="status"
         >
           {copyHint}
@@ -161,8 +161,8 @@ export function NewsletterWorkbench({
         <p
           className="rounded-lg px-3 py-2 text-sm"
           style={{
-            backgroundColor: saveMsg.startsWith("저장:") ? "#EFF6FF" : "#FFFBEB",
-            color: saveMsg.startsWith("저장:") ? "#1E40AF" : "#92400E",
+            backgroundColor: saveMsg.startsWith("저장:") ? "#EFF6FF" : "#FAFAFA",
+            color: saveMsg.startsWith("저장:") ? "#1E40AF" : "#404040",
           }}
           role="status"
         >

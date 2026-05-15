@@ -56,9 +56,9 @@ export function QueueWorkbench() {
         <p
           className="rounded-lg px-3 py-2 text-sm"
           style={{
-            backgroundColor: isError(flash) ? "#FFFBEB" : "#ECFDF5",
-            color: isError(flash) ? "#92400E" : "#065F46",
-            border: `1px solid ${isError(flash) ? "#FCD34D" : "#A7F3D0"}`,
+            backgroundColor: isError(flash) ? "#FAFAFA" : "#F5F5F5",
+            color: isError(flash) ? "#404040" : "#171717",
+            border: `1px solid ${isError(flash) ? "#D4D4D4" : "#D4D4D4"}`,
           }}
           role="status"
         >
@@ -167,7 +167,7 @@ export function QueueWorkbench() {
         >
           {[
             { label: "대기", value: stats.pending ?? 0, color: "#2563EB" },
-            { label: "처리중", value: stats.processing ?? 0, color: "#D97706" },
+            { label: "처리중", value: stats.processing ?? 0, color: "#171717" },
             { label: "완료", value: stats.done ?? 0, color: "#059669" },
             { label: "실패", value: stats.failed ?? 0, color: "#DC2626" },
             { label: "취소", value: stats.cancelled ?? 0, color: "var(--color-text-faint)" },
@@ -249,7 +249,7 @@ export function QueueWorkbench() {
                           })
                         }
                         className="text-xs transition-colors hover:underline disabled:opacity-50"
-                        style={{ color: "#D97706" }}
+                        style={{ color: "#171717" }}
                       >
                         취소
                       </button>

@@ -68,7 +68,7 @@ export default async function SocialPage({ searchParams }: PageProps) {
     <div className="mx-auto max-w-3xl px-6 py-8 pb-16">
       <div className="mb-7 flex items-center gap-3">
         <span className="flex h-9 w-9 items-center justify-center rounded-lg text-[14px] font-bold text-white"
-          style={{ backgroundColor: "#E1306C" }}>S</span>
+          style={{ backgroundColor: "#404040" }}>S</span>
         <div>
           <h1 className="text-[18px] font-normal" style={{ color: "var(--color-text)" }}>소셜 채널</h1>
           <p className="text-[12px]" style={{ color: "var(--color-text-muted)" }}>인스타그램 · Threads · Buffer 예약 큐</p>
@@ -83,7 +83,7 @@ export default async function SocialPage({ searchParams }: PageProps) {
 
       {sp.bf === "ok" && sp.postId && (
         <div className="mb-5 text-[13px]"
-          style={{ backgroundColor: "rgba(52,168,83,0.08)", border: "1px solid rgba(52,168,83,0.25)", color: "#137333", borderRadius: "8px", padding: "12px 16px" }}
+          style={{ backgroundColor: "rgba(64,64,64,0.08)", border: "1px solid rgba(64,64,64,0.25)", color: "#404040", borderRadius: "8px", padding: "12px 16px" }}
           role="status">
           Buffer에 추가했습니다.{" "}
           <span className="font-mono text-[11px]">post id: {sp.postId}</span>
@@ -91,7 +91,7 @@ export default async function SocialPage({ searchParams }: PageProps) {
       )}
       {sp.bf === "err" && sp.msg && (
         <div className="mb-5 text-[13px]"
-          style={{ backgroundColor: "rgba(249,171,0,0.08)", border: "1px solid rgba(249,171,0,0.3)", color: "#B45309", borderRadius: "8px", padding: "12px 16px" }}
+          style={{ backgroundColor: "rgba(115,115,115,0.08)", border: "1px solid rgba(115,115,115,0.3)", color: "#525252", borderRadius: "8px", padding: "12px 16px" }}
           role="alert">
           {sp.msg}
         </div>

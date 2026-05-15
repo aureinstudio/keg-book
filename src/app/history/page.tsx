@@ -11,22 +11,22 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "작업 기록 — keg-book" };
 
 const ACTION_LABELS: Record<string, { label: string; color: string }> = {
-  generate: { label: "콘텐츠 생성", color: "#4285F4" },
-  publish: { label: "발행", color: "#34A853" },
-  schedule: { label: "예약", color: "#F9AB00" },
-  edit: { label: "편집", color: "#9C27B0" },
+  generate: { label: "콘텐츠 생성", color: "#0A0A0A" },
+  publish: { label: "발행", color: "#404040" },
+  schedule: { label: "예약", color: "#737373" },
+  edit: { label: "편집", color: "#525252" },
   archive: { label: "보관", color: "#5F6368" },
-  signin: { label: "로그인", color: "#1A73E8" },
+  signin: { label: "로그인", color: "#0A0A0A" },
 };
 
 const CHANNEL_LABELS: Record<string, { label: string; color: string }> = {
-  blogger: { label: "Blogger", color: "#EA4335" },
-  naver: { label: "네이버", color: "#03C75A" },
-  newsletter: { label: "뉴스레터", color: "#9C27B0" },
-  instagram: { label: "인스타", color: "#E1306C" },
+  blogger: { label: "Blogger", color: "#262626" },
+  naver: { label: "네이버", color: "#525252" },
+  newsletter: { label: "뉴스레터", color: "#525252" },
+  instagram: { label: "인스타", color: "#404040" },
   threads: { label: "Threads", color: "#000" },
-  buffer: { label: "Buffer", color: "#168EEA" },
-  "card-news": { label: "카드뉴스", color: "#F9AB00" },
+  buffer: { label: "Buffer", color: "#525252" },
+  "card-news": { label: "카드뉴스", color: "#737373" },
 };
 
 function formatTime(ms: number) {
@@ -97,7 +97,7 @@ export default async function HistoryPage() {
               className="rounded-full px-3 py-1 text-[11px] font-medium text-white"
               style={{
                 background:
-                  "linear-gradient(135deg, #4285F4 0%, #9C27B0 100%)",
+                  "linear-gradient(135deg, #0A0A0A 0%, #525252 100%)",
               }}
             >
               + 새 생성

@@ -9,12 +9,12 @@ import { downloadComposedCard } from "@/lib/client/composeCardPng";
 // ───────────────────────────── 상수 ─────────────────────────────
 
 const CHANNELS = [
-  { key: "blogger",     label: "Blogger",       icon: "B", color: "#EA4335", route: "/blogger" },
-  { key: "naver",       label: "네이버 블로그",  icon: "N", color: "#03C75A", route: "/naver" },
-  { key: "newsletter",  label: "뉴스레터",       icon: "M", color: "#9C27B0", route: "/newsletter" },
-  { key: "instagram",   label: "인스타그램",     icon: "I", color: "#E1306C", route: "/social" },
+  { key: "blogger",     label: "Blogger",       icon: "B", color: "#262626", route: "/blogger" },
+  { key: "naver",       label: "네이버 블로그",  icon: "N", color: "#525252", route: "/naver" },
+  { key: "newsletter",  label: "뉴스레터",       icon: "M", color: "#525252", route: "/newsletter" },
+  { key: "instagram",   label: "인스타그램",     icon: "I", color: "#404040", route: "/social" },
   { key: "threads",     label: "Threads",        icon: "T", color: "#000000", route: "/social" },
-  { key: "cardNews",    label: "카드뉴스",       icon: "C", color: "#F9AB00", route: "/card-news" },
+  { key: "cardNews",    label: "카드뉴스",       icon: "C", color: "#737373", route: "/card-news" },
 ] as const;
 
 type ChannelKey = (typeof CHANNELS)[number]["key"];
@@ -42,7 +42,7 @@ function CopyButton({ text }: { text: string }) {
       className="rounded-full px-3 py-1 text-[11px] font-medium transition-colors"
       style={{
         border: "1px solid var(--color-border)",
-        color: copied ? "#34A853" : "var(--color-text-muted)",
+        color: copied ? "#404040" : "var(--color-text-muted)",
         backgroundColor: "transparent",
       }}
     >
@@ -78,7 +78,7 @@ function BloggerCard({ data }: { data: ChannelContent["blogger"] }) {
         <div className="flex flex-wrap gap-1.5">
           {data.labels.map((l) => (
             <span key={l} className="rounded-full px-2.5 py-0.5 text-[11px]"
-              style={{ backgroundColor: "rgba(234,67,53,0.1)", color: "#EA4335" }}>
+              style={{ backgroundColor: "rgba(38,38,38,0.1)", color: "#262626" }}>
               {l}
             </span>
           ))}
@@ -113,7 +113,7 @@ function NaverCard({ data }: { data: ChannelContent["naver"] }) {
         <div className="flex flex-wrap gap-1.5">
           {data.tags.map((t) => (
             <span key={t} className="rounded-full px-2.5 py-0.5 text-[11px]"
-              style={{ backgroundColor: "rgba(3,199,90,0.1)", color: "#03C75A" }}>
+              style={{ backgroundColor: "rgba(82,82,82,0.1)", color: "#525252" }}>
               {t}
             </span>
           ))}
@@ -163,7 +163,7 @@ function InstagramCard({ data }: { data: ChannelContent["instagram"] }) {
         <p className="text-[11px] font-medium uppercase tracking-wider mb-1.5" style={{ color: "var(--color-text-faint)" }}>
           해시태그 ({data.hashtags.length}개)
         </p>
-        <p className="text-[12px] leading-relaxed" style={{ color: "#E1306C" }}>
+        <p className="text-[12px] leading-relaxed" style={{ color: "#404040" }}>
           {data.hashtags.join(" ")}
         </p>
       </div>
@@ -193,7 +193,7 @@ function CardNewsCard({ data }: { data: NonNullable<ChannelContent["cardNews"]> 
   if (!data.slides.length) {
     return (
       <div className="rounded-xl p-4 text-center text-[13px]"
-        style={{ backgroundColor: "rgba(249,171,0,0.08)", color: "var(--color-text-muted)" }}>
+        style={{ backgroundColor: "rgba(115,115,115,0.08)", color: "var(--color-text-muted)" }}>
         {data.error ?? "카드뉴스가 생성되지 않았습니다."}
       </div>
     );
@@ -202,7 +202,7 @@ function CardNewsCard({ data }: { data: NonNullable<ChannelContent["cardNews"]> 
     <div className="space-y-3">
       {data.error && (
         <div className="rounded-lg px-3 py-2 text-[11px]"
-          style={{ backgroundColor: "rgba(249,171,0,0.1)", color: "#c47800" }}>
+          style={{ backgroundColor: "rgba(115,115,115,0.1)", color: "#c47800" }}>
           ⚠ {data.error}
         </div>
       )}
@@ -275,7 +275,7 @@ function CardNewsCard({ data }: { data: NonNullable<ChannelContent["cardNews"]> 
                       downloadComposedCard(src, slide.headline, isCover, `slide_${i + 1}.png`)
                     }
                     className="inline-flex items-center gap-1 text-[11px] font-medium hover:underline"
-                    style={{ color: "#F9AB00" }}>
+                    style={{ color: "#737373" }}>
                     ↓ 헤드라인 포함 PNG 다운로드
                   </button>
                 )}
@@ -303,7 +303,7 @@ function StatsBanner({ data, keyword }: { data: ChannelContent; keyword: string 
     <div
       className="mb-6 rounded-2xl px-5 py-4"
       style={{
-        background: "linear-gradient(135deg, rgba(66,133,244,0.08) 0%, rgba(156,39,176,0.08) 100%)",
+        background: "linear-gradient(135deg, rgba(10,10,10,0.08) 0%, rgba(82,82,82,0.08) 100%)",
         border: "1px solid var(--color-border)",
       }}
     >
@@ -336,12 +336,12 @@ function StatsBanner({ data, keyword }: { data: ChannelContent; keyword: string 
       {/* 채널별 글자수 바 */}
       <div className="mt-4 grid grid-cols-3 gap-2 text-center sm:grid-cols-6">
         {[
-          { label: "Blogger", value: bloggerWords.toLocaleString(), color: "#EA4335" },
-          { label: "네이버", value: naverWords.toLocaleString(), color: "#03C75A" },
-          { label: "뉴스레터", value: newsletterWords.toLocaleString(), color: "#9C27B0" },
-          { label: "인스타", value: instagramWords.toLocaleString(), color: "#E1306C" },
+          { label: "Blogger", value: bloggerWords.toLocaleString(), color: "#262626" },
+          { label: "네이버", value: naverWords.toLocaleString(), color: "#525252" },
+          { label: "뉴스레터", value: newsletterWords.toLocaleString(), color: "#525252" },
+          { label: "인스타", value: instagramWords.toLocaleString(), color: "#404040" },
           { label: "Threads", value: threadsWords.toLocaleString(), color: "#000" },
-          { label: "카드뉴스", value: cardSlides > 0 ? `${cardSlides}장` : "—", color: "#F9AB00" },
+          { label: "카드뉴스", value: cardSlides > 0 ? `${cardSlides}장` : "—", color: "#737373" },
         ].map((ch) => (
           <div key={ch.label}>
             <p className="text-[13px] font-medium tabular-nums" style={{ color: ch.color }}>
@@ -387,7 +387,7 @@ export function GenerateWorkbench() {
         <div className="flex items-center gap-3 mb-2">
           <div
             className="flex h-9 w-9 items-center justify-center rounded-xl text-[14px] font-bold text-white"
-            style={{ background: "linear-gradient(135deg, #4285F4 0%, #9C27B0 100%)" }}
+            style={{ background: "linear-gradient(135deg, #0A0A0A 0%, #525252 100%)" }}
           >
             ✦
           </div>
@@ -414,7 +414,7 @@ export function GenerateWorkbench() {
           {/* 키워드 — 필수 */}
           <div>
             <label className="mb-1.5 block text-[13px] font-medium" style={{ color: "var(--color-text)" }}>
-              키워드 / 주제 <span style={{ color: "#EA4335" }}>*</span>
+              키워드 / 주제 <span style={{ color: "#262626" }}>*</span>
             </label>
             <input
               name="keyword"
@@ -480,7 +480,7 @@ export function GenerateWorkbench() {
             style={{
               background: isPending
                 ? "var(--color-border)"
-                : "linear-gradient(135deg, #4285F4 0%, #9C27B0 100%)",
+                : "linear-gradient(135deg, #0A0A0A 0%, #525252 100%)",
               cursor: isPending ? "not-allowed" : "pointer",
               minWidth: "140px",
               justifyContent: "center",
@@ -505,8 +505,8 @@ export function GenerateWorkbench() {
         <div
           className="mb-6 rounded-xl px-4 py-3 text-[13px]"
           style={{
-            backgroundColor: "rgba(234,67,53,0.08)",
-            border: "1px solid rgba(234,67,53,0.25)",
+            backgroundColor: "rgba(38,38,38,0.08)",
+            border: "1px solid rgba(38,38,38,0.25)",
             color: "#c62828",
           }}
           role="alert"
@@ -595,7 +595,7 @@ export function GenerateWorkbench() {
               ? <CardNewsCard data={channelData.cardNews} />
               : (
                 <div className="rounded-xl p-4 text-center text-[13px]"
-                  style={{ backgroundColor: "rgba(249,171,0,0.08)", color: "var(--color-text-muted)" }}>
+                  style={{ backgroundColor: "rgba(115,115,115,0.08)", color: "var(--color-text-muted)" }}>
                   카드뉴스가 생성되지 않았습니다.
                 </div>
               ))

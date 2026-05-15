@@ -25,8 +25,8 @@ const SOLUTIONS: Solution[] = [
   {
     href: "/generate",
     icon: "✦",
-    color: "#4285F4",
-    bg: "linear-gradient(135deg, #4285F4 0%, #9C27B0 100%)",
+    color: "#0A0A0A",
+    bg: "linear-gradient(135deg, #0A0A0A 0%, #525252 100%)",
     label: "콘텐츠 생성",
     sub: "6 채널 동시",
     desc: "키워드 하나로 블로그·소셜·뉴스레터·카드뉴스까지 한 번에. Claude와 Gemini가 채널별 톤에 맞춰 자동 채움.",
@@ -35,7 +35,7 @@ const SOLUTIONS: Solution[] = [
   {
     href: "/blogger",
     icon: "B",
-    color: "#EA4335",
+    color: "#262626",
     label: "Blogger",
     sub: "Google Blogger API",
     desc: "SEO 친화 제목·메타·라벨까지 한 번에 작성하고 Blogger에 초안으로 직접 전송.",
@@ -44,7 +44,7 @@ const SOLUTIONS: Solution[] = [
   {
     href: "/naver",
     icon: "N",
-    color: "#03C75A",
+    color: "#525252",
     label: "네이버 블로그",
     sub: "스마트에디터 호환 HTML",
     desc: "글쓰기 API가 종료된 환경에 맞춘 HTML·태그 한 번 복사 흐름. 로그인 없이 즉시 사용.",
@@ -53,7 +53,7 @@ const SOLUTIONS: Solution[] = [
   {
     href: "/social",
     icon: "S",
-    color: "#E1306C",
+    color: "#404040",
     label: "인스타·Threads",
     sub: "Buffer GraphQL",
     desc: "캡션·해시태그·Threads 글까지 채널별로 다듬어 Buffer 예약 큐로 한 번에 전송.",
@@ -62,7 +62,7 @@ const SOLUTIONS: Solution[] = [
   {
     href: "/newsletter",
     icon: "M",
-    color: "#9C27B0",
+    color: "#525252",
     label: "뉴스레터",
     sub: "메일리 호환 HTML",
     desc: "Subject·프리헤더·본문 HTML을 한 화면에서. 메일리 스토리/Q&A 템플릿 그대로 사용.",
@@ -71,7 +71,7 @@ const SOLUTIONS: Solution[] = [
   {
     href: "/card-news",
     icon: "C",
-    color: "#F9AB00",
+    color: "#737373",
     label: "카드뉴스",
     sub: "Gemini 2.5 Flash Image",
     desc: "키워드로 표지+본문 3장 슬라이드 자동 기획·생성. PNG로 바로 다운로드 또는 Storage 영구 보관.",
@@ -105,7 +105,7 @@ function GoogleSignInButton({ redirectTo }: { redirectTo: string }) {
       href={`/login?redirect=${encodeURIComponent(redirectTo)}`}
       className="flex items-center gap-2 rounded-full px-6 py-3 text-[14px] font-medium text-white transition-all"
       style={{
-        background: "linear-gradient(135deg, #4285F4 0%, #9C27B0 100%)",
+        background: "linear-gradient(135deg, #0A0A0A 0%, #525252 100%)",
         boxShadow: "var(--shadow-2)",
       }}
     >
@@ -133,8 +133,8 @@ export default async function LandingPage() {
             <span
               className="rounded-full px-2.5 py-0.5 text-[11px] font-medium"
               style={{
-                backgroundColor: "rgba(66,133,244,0.1)",
-                color: "#4285F4",
+                backgroundColor: "rgba(10,10,10,0.1)",
+                color: "#0A0A0A",
               }}
             >
               v0.1
@@ -153,7 +153,7 @@ export default async function LandingPage() {
             <br />
             <span
               style={{
-                background: "linear-gradient(135deg, #4285F4 0%, #9C27B0 100%)",
+                background: "linear-gradient(135deg, #0A0A0A 0%, #525252 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
@@ -181,7 +181,7 @@ export default async function LandingPage() {
                   href="/generate"
                   className="flex items-center gap-2 rounded-full px-6 py-3 text-[14px] font-medium text-white transition-all"
                   style={{
-                    background: "linear-gradient(135deg, #4285F4 0%, #9C27B0 100%)",
+                    background: "linear-gradient(135deg, #0A0A0A 0%, #525252 100%)",
                     boxShadow: "var(--shadow-2)",
                   }}
                 >
@@ -353,7 +353,7 @@ export default async function LandingPage() {
               >
                 <p
                   className="mb-3 text-[12px] font-medium tabular-nums"
-                  style={{ color: "#4285F4" }}
+                  style={{ color: "#0A0A0A" }}
                 >
                   {step.n}
                 </p>
@@ -381,7 +381,7 @@ export default async function LandingPage() {
           className="mx-auto max-w-5xl rounded-3xl px-8 py-10 text-center sm:px-12 sm:py-14"
           style={{
             background:
-              "linear-gradient(135deg, rgba(66,133,244,0.08) 0%, rgba(156,39,176,0.08) 100%)",
+              "linear-gradient(135deg, rgba(10,10,10,0.08) 0%, rgba(82,82,82,0.08) 100%)",
             border: "1px solid var(--color-border)",
           }}
         >
@@ -403,7 +403,7 @@ export default async function LandingPage() {
                 href="/generate"
                 className="rounded-full px-6 py-3 text-[14px] font-medium text-white"
                 style={{
-                  background: "linear-gradient(135deg, #4285F4 0%, #9C27B0 100%)",
+                  background: "linear-gradient(135deg, #0A0A0A 0%, #525252 100%)",
                   boxShadow: "var(--shadow-2)",
                 }}
               >

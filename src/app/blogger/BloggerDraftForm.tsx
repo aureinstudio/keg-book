@@ -19,14 +19,14 @@ const fieldStyle = {
 /** 글자수 범위에 따라 색 반환 */
 function rangeColor(len: number, min: number, max: number) {
   if (len === 0) return "var(--color-text-faint)";
-  if (len < min) return "#F9AB00";
-  if (len <= max) return "#34A853";
-  return "#EA4335";
+  if (len < min) return "#737373";
+  if (len <= max) return "#404040";
+  return "#262626";
 }
 
 /** 신호등 점수 배지 */
 function Dot({ ok }: { ok: boolean | null }) {
-  const color = ok === null ? "var(--color-text-faint)" : ok ? "#34A853" : "#F9AB00";
+  const color = ok === null ? "var(--color-text-faint)" : ok ? "#404040" : "#737373";
   return <span className="inline-block h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: color }} />;
 }
 
@@ -100,7 +100,7 @@ export function BloggerDraftForm({
           onClick={() => setSeoOpen((v) => !v)}
           className="flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium transition-colors"
           style={{
-            backgroundColor: seoOpen ? "rgba(26,115,232,0.1)" : "var(--color-surface-2)",
+            backgroundColor: seoOpen ? "rgba(10,10,10,0.1)" : "var(--color-surface-2)",
             color: seoOpen ? "var(--color-accent)" : "var(--color-text-muted)",
             border: "1px solid var(--color-border)",
           }}
@@ -221,7 +221,7 @@ export function BloggerDraftForm({
                   key={l}
                   className="rounded-full px-2 py-0.5 text-[11px]"
                   style={{
-                    backgroundColor: "rgba(26,115,232,0.1)",
+                    backgroundColor: "rgba(10,10,10,0.1)",
                     color: "var(--color-accent)",
                   }}
                 >
@@ -248,7 +248,7 @@ export function BloggerDraftForm({
             type="submit"
             className="text-[14px] font-medium text-white transition-opacity hover:opacity-90"
             style={{
-              backgroundColor: "#EA4335",
+              backgroundColor: "#262626",
               borderRadius: "20px",
               padding: "9px 22px",
             }}

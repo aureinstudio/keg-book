@@ -26,9 +26,9 @@ export function CardNewsResultView({
       <p
         className="rounded-lg px-3 py-3 text-[12px]"
         style={{
-          backgroundColor: "rgba(234, 67, 53, 0.08)",
-          color: "#EA4335",
-          border: "1px solid rgba(234, 67, 53, 0.2)",
+          backgroundColor: "rgba(38,38,38, 0.08)",
+          color: "#262626",
+          border: "1px solid rgba(38,38,38, 0.2)",
         }}
       >
         카드뉴스 생성 오류: {error}

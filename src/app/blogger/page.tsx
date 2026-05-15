@@ -84,7 +84,7 @@ export default async function BloggerPage({ searchParams }: PageProps) {
           <p className="mt-5 text-[12px]" style={{ color: "var(--color-text-faint)", lineHeight: 1.7 }}>
             <Link href="/" style={{ color: "var(--color-accent)" }}>← 홈으로</Link>
             {" · "}
-            <Link href="/naver" style={{ color: "#03C75A" }}>네이버 패널</Link>은 로그인 없이 사용 가능
+            <Link href="/naver" style={{ color: "#525252" }}>네이버 패널</Link>은 로그인 없이 사용 가능
           </p>
         </div>
       </div>
@@ -110,7 +110,7 @@ export default async function BloggerPage({ searchParams }: PageProps) {
         <div className="flex items-center gap-3">
           <span
             className="flex h-9 w-9 items-center justify-center rounded-lg text-[14px] font-bold text-white"
-            style={{ backgroundColor: "#EA4335" }}
+            style={{ backgroundColor: "#262626" }}
           >
             B
           </span>
@@ -149,9 +149,9 @@ export default async function BloggerPage({ searchParams }: PageProps) {
         <div
           className="mb-5 text-[13px]"
           style={{
-            backgroundColor: "rgba(52,168,83,0.08)",
-            border: "1px solid rgba(52,168,83,0.25)",
-            color: "#137333",
+            backgroundColor: "rgba(64,64,64,0.08)",
+            border: "1px solid rgba(64,64,64,0.25)",
+            color: "#404040",
             borderRadius: "8px",
             padding: "12px 16px",
           }}
@@ -160,7 +160,7 @@ export default async function BloggerPage({ searchParams }: PageProps) {
           Blogger에 초안이 저장되었습니다.
           {sp.postUrl && (
             <a href={sp.postUrl} target="_blank" rel="noopener noreferrer"
-              className="ml-2 font-medium underline" style={{ color: "#137333" }}>
+              className="ml-2 font-medium underline" style={{ color: "#404040" }}>
               Blogger에서 열기 →
             </a>
           )}
@@ -170,9 +170,9 @@ export default async function BloggerPage({ searchParams }: PageProps) {
         <div
           className="mb-5 text-[13px]"
           style={{
-            backgroundColor: "rgba(249,171,0,0.08)",
-            border: "1px solid rgba(249,171,0,0.3)",
-            color: "#B45309",
+            backgroundColor: "rgba(115,115,115,0.08)",
+            border: "1px solid rgba(115,115,115,0.3)",
+            color: "#525252",
             borderRadius: "8px",
             padding: "12px 16px",
           }}
@@ -195,7 +195,7 @@ export default async function BloggerPage({ searchParams }: PageProps) {
           연결된 블로그
         </h2>
         {blogError && (
-          <p className="text-[13px]" style={{ color: "#F9AB00" }} role="alert">{blogError}</p>
+          <p className="text-[13px]" style={{ color: "#737373" }} role="alert">{blogError}</p>
         )}
         {!blogError && blogs.length === 0 && (
           <p className="text-[13px]" style={{ color: "var(--color-text-faint)" }}>연결된 블로그가 없습니다.</p>
@@ -203,7 +203,7 @@ export default async function BloggerPage({ searchParams }: PageProps) {
         <ul className="space-y-2.5">
           {blogs.map((b) => (
             <li key={b.id} className="flex items-center gap-2.5">
-              <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: "#EA4335" }} />
+              <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: "#262626" }} />
               <a href={b.url} target="_blank" rel="noopener noreferrer"
                 className="text-[13px] font-medium hover:underline"
                 style={{ color: "var(--color-accent)" }}
