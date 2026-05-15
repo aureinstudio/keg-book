@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 
-const TEXT_MODEL = "gemini-1.5-flash";
+const TEXT_MODEL = "gemini-3-flash-preview";
 
 export type ChannelContent = {
   blogger: {
