@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { auth, signIn } from "@/auth";
 import { redirect } from "next/navigation";
+import { BrandLogo } from "../BrandLogo";
 
 export const metadata: Metadata = { title: "로그인 — keg-book" };
 
@@ -54,12 +55,7 @@ export default async function LoginPage({ searchParams }: PageProps) {
       >
         {/* 로고 */}
         <div className="mb-6 flex items-center gap-2.5">
-          <div
-            className="flex h-9 w-9 items-center justify-center rounded-xl text-[13px] font-bold text-white"
-            style={{ background: "linear-gradient(135deg, #0A0A0A 0%, #525252 100%)" }}
-          >
-            K
-          </div>
+          <BrandLogo size={36} />
           <div>
             <p className="text-[14px] font-medium" style={{ color: "var(--color-text)" }}>
               keg-book

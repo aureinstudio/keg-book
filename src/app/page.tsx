@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { auth } from "@/auth";
+import { BrandLogo } from "./BrandLogo";
 
 export const metadata: Metadata = {
   title: "keg-book — KEG 교재 마케팅 자동화",
@@ -128,13 +129,32 @@ export default async function LandingPage() {
       {/* Hero */}
       <section className="px-6 py-16 sm:py-24">
         <div className="mx-auto max-w-5xl">
+          {/* 로고 */}
+          <div className="mb-7 flex items-center gap-3">
+            <BrandLogo size={56} />
+            <div>
+              <p
+                className="text-[14px] font-medium leading-none"
+                style={{ color: "var(--color-text)" }}
+              >
+                keg-book
+              </p>
+              <p
+                className="mt-1 text-[11px] leading-none"
+                style={{ color: "var(--color-text-faint)" }}
+              >
+                KEG 교재 마케팅 워크벤치
+              </p>
+            </div>
+          </div>
+
           {/* 버전 배지 */}
           <div className="mb-6 flex items-center gap-2">
             <span
               className="rounded-full px-2.5 py-0.5 text-[11px] font-medium"
               style={{
-                backgroundColor: "rgba(10,10,10,0.1)",
-                color: "#0A0A0A",
+                backgroundColor: "rgba(10,10,10,0.08)",
+                color: "var(--color-text)",
               }}
             >
               v0.1

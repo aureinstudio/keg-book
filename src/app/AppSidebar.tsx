@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { ThemeToggle } from "./ThemeToggle";
+import { BrandLogo } from "./BrandLogo";
 
 type NavItem = {
   href: string;
@@ -55,17 +56,13 @@ export function AppSidebar({ userBadge }: { userBadge?: ReactNode }) {
         borderRight: "1px solid var(--color-sidebar-border)",
       }}
     >
-      {/* 로고 영역 — AI Studio 상단 헤더 스타일 */}
-      <div
+      {/* 로고 영역 */}
+      <Link
+        href="/"
         className="flex h-14 items-center gap-2.5 px-4"
         style={{ borderBottom: "1px solid var(--color-sidebar-border)" }}
       >
-        {/* Gemini 그라데이션 로고 */}
-        <div
-          className="gemini-gradient flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold text-white"
-        >
-          K
-        </div>
+        <BrandLogo size={28} />
         <div>
           <p
             className="text-[13px] font-medium leading-none"
@@ -80,7 +77,7 @@ export function AppSidebar({ userBadge }: { userBadge?: ReactNode }) {
             마케팅 채널 관리
           </p>
         </div>
-      </div>
+      </Link>
 
       {/* 내비게이션 — 섹션별 그룹 */}
       <nav className="flex-1 overflow-y-auto px-2 pt-2" aria-label="채널 네비게이션">
