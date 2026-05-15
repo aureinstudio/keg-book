@@ -26,6 +26,9 @@ type Props = {
   bufferChannels: BufferChannelLite[];
   bufferListError: string | null;
   bufferTokenConfigured: boolean;
+  initialTitle?: string;
+  initialBody?: string;
+  initialHashtags?: string[];
 };
 
 const inputClass =
@@ -40,12 +43,17 @@ export function SocialWorkbench({
   bufferChannels,
   bufferListError,
   bufferTokenConfigured,
+  initialTitle,
+  initialBody,
+  initialHashtags,
 }: Props) {
-  const [title, setTitle] = useState("봄 학기 신간 교재 안내");
+  const [title, setTitle] = useState(initialTitle ?? "봄 학기 신간 교재 안내");
   const [bodyHtml, setBodyHtml] = useState(
-    "<p>핵심 메시지를 여기 HTML로 적습니다.</p><p>두 번째 문단.</p>",
+    initialBody ?? "<p>핵심 메시지를 여기 HTML로 적습니다.</p><p>두 번째 문단.</p>",
   );
-  const [extraHashtags, setExtraHashtags] = useState("");
+  const [extraHashtags, setExtraHashtags] = useState(
+    (initialHashtags ?? []).map((t) => t.replace(/^#/, "")).join(" "),
+  );
   const [queueText, setQueueText] = useState("");
   const [copyHint, setCopyHint] = useState<string | null>(null);
   const [saveMsg, setSaveMsg] = useState<string | null>(null);

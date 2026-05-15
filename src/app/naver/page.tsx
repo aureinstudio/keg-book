@@ -1,9 +1,39 @@
 import type { Metadata } from "next";
 import { NaverExportPanel } from "./NaverExportPanel";
+import { PrefillFromGeneration } from "../PrefillFromGeneration";
+import { getGeneration } from "@/lib/db/generations";
 
 export const metadata: Metadata = { title: "네이버 블로그 — keg-book" };
 
-export default function NaverAssistPage() {
+type SearchParams = { from?: string };
+
+export default async function NaverAssistPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const sp = await searchParams;
+  const fromId = sp.from;
+
+  // /generate에서 넘어온 경우 — 네이버 초안 자동 프리필
+  let initialTitle: string | undefined;
+  let initialDescription: string | undefined;
+  let initialBody: string | undefined;
+  let initialTags: string[] | undefined;
+
+  if (fromId) {
+    const gen = await getGeneration(fromId).catch(() => null);
+    const naver = (gen?.raw_json as Record<string, unknown> | undefined)?.naver as
+      | { title?: string; description?: string; content_html?: string; tags?: string[] }
+      | undefined;
+    if (naver) {
+      initialTitle = naver.title;
+      initialDescription = naver.description;
+      initialBody = naver.content_html;
+      initialTags = naver.tags;
+    }
+  }
+
   return (
     <div className="mx-auto max-w-3xl px-6 py-8 pb-16">
       <div className="mb-7 flex items-center gap-3">
@@ -15,9 +45,16 @@ export default function NaverAssistPage() {
         </div>
       </div>
 
+      <PrefillFromGeneration channel="naver" basePath="/naver" fromId={fromId} />
+
       <div className="flex flex-col gap-4">
         <div style={{ backgroundColor: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: "12px", padding: "20px" }}>
-          <NaverExportPanel />
+          <NaverExportPanel
+            initialTitle={initialTitle}
+            initialDescription={initialDescription}
+            initialBody={initialBody}
+            initialTags={initialTags}
+          />
         </div>
 
         {/* 체크리스트 */}

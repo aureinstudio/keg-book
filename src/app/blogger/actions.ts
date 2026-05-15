@@ -2,6 +2,7 @@
 
 import { auth } from "@/auth";
 import { createDraftPost } from "@/lib/blogger/createDraftPost";
+import { logActivity } from "@/lib/db/generations";
 import { redirect } from "next/navigation";
 
 export async function submitBloggerDraft(formData: FormData) {
@@ -25,8 +26,9 @@ export async function submitBloggerDraft(formData: FormData) {
     redirect("/?draftError=" + encodeURIComponent("블로그를 선택하세요."));
   }
 
+  let post: Awaited<ReturnType<typeof createDraftPost>>;
   try {
-    const post = await createDraftPost({
+    post = await createDraftPost({
       blogId,
       accessToken: session.accessToken,
       title,
@@ -34,14 +36,25 @@ export async function submitBloggerDraft(formData: FormData) {
       description: description || undefined,
       labels: labels.length > 0 ? labels : undefined,
     });
-    const q = new URLSearchParams({
-      draftOk: "1",
-      postId: post.id,
-    });
-    if (post.url) q.set("postUrl", post.url);
-    redirect(`/?${q.toString()}`);
   } catch (e) {
     const msg = e instanceof Error ? e.message : "초안 저장 실패";
     redirect("/?draftError=" + encodeURIComponent(msg.slice(0, 200)));
   }
+
+  // 활동 로그 기록 (실패해도 진행)
+  await logActivity({
+    userEmail: session?.user?.email ?? null,
+    userName: session?.user?.name ?? null,
+    action: "publish",
+    targetType: "blogger",
+    targetId: post.id,
+    detail: { blogId, title, postUrl: post.url ?? null },
+  }).catch(() => {});
+
+  const q = new URLSearchParams({
+    draftOk: "1",
+    postId: post.id,
+  });
+  if (post.url) q.set("postUrl", post.url);
+  redirect(`/?${q.toString()}`);
 }

@@ -33,10 +33,18 @@ function Dot({ ok }: { ok: boolean }) {
   );
 }
 
-export function NewsletterWorkbench() {
-  const [subject, setSubject] = useState("[KEG] 5월 뉴스레터");
-  const [preheader, setPreheader] = useState("신간 교재와 이벤트를 한눈에");
-  const [bodyHtml, setBodyHtml] = useState(DEFAULT_BODY);
+export function NewsletterWorkbench({
+  initialSubject,
+  initialPreheader,
+  initialBody,
+}: {
+  initialSubject?: string;
+  initialPreheader?: string;
+  initialBody?: string;
+} = {}) {
+  const [subject, setSubject] = useState(initialSubject ?? "[KEG] 5월 뉴스레터");
+  const [preheader, setPreheader] = useState(initialPreheader ?? "신간 교재와 이벤트를 한눈에");
+  const [bodyHtml, setBodyHtml] = useState(initialBody ?? DEFAULT_BODY);
   const [seoOpen, setSeoOpen] = useState(true);
   const [copyHint, setCopyHint] = useState<string | null>(null);
   const [saveMsg, setSaveMsg] = useState<string | null>(null);

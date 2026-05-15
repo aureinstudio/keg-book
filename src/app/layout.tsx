@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { AppSidebar } from "./AppSidebar";
 import { KegThemeProvider } from "./KegThemeProvider";
+import { UserBadge } from "./UserBadge";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -18,7 +19,7 @@ export default function RootLayout({
       <body suppressHydrationWarning>
         <KegThemeProvider>
           <div className="flex h-screen overflow-hidden" style={{ backgroundColor: "var(--color-bg)" }}>
-            <AppSidebar />
+            <AppSidebar userBadge={<UserBadge />} />
             {/* 메인 영역 */}
             <main className="flex-1 overflow-y-auto">
               {children}

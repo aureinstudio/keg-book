@@ -1,5 +1,9 @@
 import { GoogleGenAI } from "@google/genai";
 import Anthropic from "@anthropic-ai/sdk";
+import {
+  generateCardNewsSlides,
+  type CardNewsContent,
+} from "./generateCardNewsSlides";
 
 const FLASH_MODEL = "gemini-3-flash-preview";
 const CLAUDE_MODEL = "claude-opus-4-5";
@@ -29,6 +33,7 @@ export type ChannelContent = {
   threads: {
     text: string;
   };
+  cardNews?: CardNewsContent;
 };
 
 export type GenerateAllChannelsParams = {
@@ -38,6 +43,8 @@ export type GenerateAllChannelsParams = {
   productName?: string;
   targetAudience?: string;
   context?: string;
+  /** 카드뉴스 슬라이드 수 (기본 3, 0이면 생성 안 함) */
+  cardNewsCount?: number;
 };
 
 const SYSTEM_PROMPT = `당신은 코리아교육그룹(KEG) 교재 마케팅 전문 카피라이터입니다.
@@ -147,6 +154,24 @@ ${meta}
 export async function generateAllChannels(
   params: GenerateAllChannelsParams,
 ): Promise<ChannelContent> {
+  const cardNewsCount = params.cardNewsCount ?? 3;
+
+  // 카드뉴스는 텍스트 채널과 병렬로 시작 (실패해도 텍스트는 살림)
+  const cardNewsPromise: Promise<CardNewsContent | undefined> =
+    cardNewsCount > 0
+      ? generateCardNewsSlides({
+          apiKey: params.apiKey,
+          keyword: params.keyword,
+          productName: params.productName,
+          targetAudience: params.targetAudience,
+          context: params.context,
+          count: cardNewsCount,
+        }).catch((e) => ({
+          slides: [],
+          error: `카드뉴스 생성 실패: ${e instanceof Error ? e.message : String(e)}`,
+        }))
+      : Promise.resolve(undefined);
+
   // Anthropic 키가 없으면 Gemini로 전체 생성
   if (!params.anthropicApiKey) {
     const ai = new GoogleGenAI({ apiKey: params.apiKey });
@@ -165,20 +190,25 @@ ${meta}
   "instagram": { "caption": "캡션 (이모지 포함)", "hashtags": ["#태그"] },
   "threads": { "text": "Threads 글" }
 }`;
-    const response = await ai.models.generateContent({
-      model: FLASH_MODEL,
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      config: { systemInstruction: SYSTEM_PROMPT, temperature: 0.7, maxOutputTokens: 8192 },
-    });
-    const raw = response.text?.trim() ?? "";
-    return JSON.parse(stripCodeBlock(raw)) as ChannelContent;
+    const [textResp, cardNews] = await Promise.all([
+      ai.models.generateContent({
+        model: FLASH_MODEL,
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        config: { systemInstruction: SYSTEM_PROMPT, temperature: 0.7, maxOutputTokens: 8192 },
+      }),
+      cardNewsPromise,
+    ]);
+    const raw = textResp.text?.trim() ?? "";
+    const parsed = JSON.parse(stripCodeBlock(raw)) as ChannelContent;
+    return { ...parsed, cardNews };
   }
 
-  // 병렬 생성: 블로그(Claude) + 소셜(Gemini)
-  const [longForm, shortForm] = await Promise.all([
+  // 병렬 생성: 블로그(Claude) + 소셜(Gemini) + 카드뉴스(Gemini Image)
+  const [longForm, shortForm, cardNews] = await Promise.all([
     generateLongForm(params),
     generateShortForm(params),
+    cardNewsPromise,
   ]);
 
-  return { ...longForm, ...shortForm };
+  return { ...longForm, ...shortForm, cardNews };
 }

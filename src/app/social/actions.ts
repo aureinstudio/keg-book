@@ -1,6 +1,8 @@
 "use server";
 
+import { auth } from "@/auth";
 import { createBufferTextPost } from "@/lib/buffer/createBufferPost";
+import { logActivity } from "@/lib/db/generations";
 import { redirect } from "next/navigation";
 
 export async function submitBufferQueue(formData: FormData) {
@@ -19,15 +21,30 @@ export async function submitBufferQueue(formData: FormData) {
         encodeURIComponent("채널과 본문을 모두 입력하세요."),
     );
   }
+
+  const session = await auth().catch(() => null);
+
+  let postId: string;
   try {
-    const { postId } = await createBufferTextPost({
+    const res = await createBufferTextPost({
       accessToken: token,
       channelId,
       text,
     });
-    redirect("/social?bf=ok&postId=" + encodeURIComponent(postId));
+    postId = res.postId;
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Buffer 큐 저장 실패";
     redirect("/social?bf=err&msg=" + encodeURIComponent(msg.slice(0, 220)));
   }
+
+  await logActivity({
+    userEmail: session?.user?.email ?? null,
+    userName: session?.user?.name ?? null,
+    action: "schedule",
+    targetType: "buffer",
+    targetId: postId,
+    detail: { channelId, textPreview: text.slice(0, 120) },
+  }).catch(() => {});
+
+  redirect("/social?bf=ok&postId=" + encodeURIComponent(postId));
 }

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { ReactNode } from "react";
 import { ThemeToggle } from "./ThemeToggle";
 
 type NavItem = {
@@ -18,15 +19,16 @@ type NavSection = {
 
 const navSections: NavSection[] = [
   {
-    label: "생성",
+    label: "시작",
     items: [
+      { href: "/",         label: "홈",         icon: "K", color: "#5F6368" },
       { href: "/generate", label: "콘텐츠 생성", icon: "✦", color: "#4285F4" },
     ],
   },
   {
     label: "채널",
     items: [
-      { href: "/",              label: "Blogger",  icon: "B", color: "#EA4335" },
+      { href: "/blogger",       label: "Blogger",  icon: "B", color: "#EA4335" },
       { href: "/naver",         label: "네이버",   icon: "N", color: "#03C75A" },
       { href: "/social",        label: "소셜",     icon: "S", color: "#E1306C" },
       { href: "/newsletter",    label: "뉴스레터", icon: "M", color: "#9C27B0" },
@@ -36,12 +38,13 @@ const navSections: NavSection[] = [
   {
     label: "관리",
     items: [
+      { href: "/history",       label: "작업 기록", icon: "H", color: "#5F6368" },
       { href: "/publish-queue", label: "발행 큐",  icon: "Q", color: "#1A73E8" },
     ],
   },
 ];
 
-export function AppSidebar() {
+export function AppSidebar({ userBadge }: { userBadge?: ReactNode }) {
   const pathname = usePathname();
 
   return (
@@ -163,11 +166,12 @@ export function AppSidebar() {
         ))}
       </nav>
 
-      {/* 하단 — 테마 토글 */}
+      {/* 하단 — 사용자 + 테마 토글 */}
       <div
-        className="px-2 py-3"
+        className="space-y-2 px-2 py-3"
         style={{ borderTop: "1px solid var(--color-sidebar-border)" }}
       >
+        {userBadge}
         <ThemeToggle />
       </div>
     </aside>

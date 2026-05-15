@@ -30,11 +30,23 @@ function Dot({ ok }: { ok: boolean | null }) {
   return <span className="inline-block h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: color }} />;
 }
 
-export function BloggerDraftForm({ blogs }: { blogs: Blog[] }) {
+export function BloggerDraftForm({
+  blogs,
+  initialTitle,
+  initialDescription,
+  initialLabels,
+  initialContent,
+}: {
+  blogs: Blog[];
+  initialTitle?: string;
+  initialDescription?: string;
+  initialLabels?: string[];
+  initialContent?: string;
+}) {
   const formRef = useRef<HTMLFormElement>(null);
-  const [title, setTitle] = useState("keg-book 테스트 초안");
-  const [description, setDescription] = useState("");
-  const [labels, setLabels] = useState("");
+  const [title, setTitle] = useState(initialTitle ?? "keg-book 테스트 초안");
+  const [description, setDescription] = useState(initialDescription ?? "");
+  const [labels, setLabels] = useState((initialLabels ?? []).join(", "));
   const [seoOpen, setSeoOpen] = useState(true);
 
   const titleLen = title.length;
@@ -225,8 +237,8 @@ export function BloggerDraftForm({ blogs }: { blogs: Blog[] }) {
           <span className="text-[12px]" style={{ color: "var(--color-text-muted)" }}>본문 (HTML)</span>
           <textarea
             name="content"
-            rows={6}
-            defaultValue="<p>keg-book에서 생성한 초안입니다.</p>"
+            rows={initialContent ? 12 : 6}
+            defaultValue={initialContent ?? "<p>keg-book에서 생성한 초안입니다.</p>"}
             style={{ ...fieldStyle, fontFamily: "monospace", resize: "vertical" }}
           />
         </label>

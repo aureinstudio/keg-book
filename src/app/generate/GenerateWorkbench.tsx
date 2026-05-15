@@ -1,17 +1,19 @@
 "use client";
 
 import { useState, useTransition, useRef } from "react";
+import Link from "next/link";
 import { generateContentAction, type GenerateResult } from "./actions";
 import type { ChannelContent } from "@/lib/gemini/generateAllChannels";
 
 // ───────────────────────────── 상수 ─────────────────────────────
 
 const CHANNELS = [
-  { key: "blogger",     label: "Blogger",       icon: "B", color: "#EA4335" },
-  { key: "naver",       label: "네이버 블로그",  icon: "N", color: "#03C75A" },
-  { key: "newsletter",  label: "뉴스레터",       icon: "M", color: "#9C27B0" },
-  { key: "instagram",   label: "인스타그램",     icon: "I", color: "#E1306C" },
-  { key: "threads",     label: "Threads",        icon: "T", color: "#000000" },
+  { key: "blogger",     label: "Blogger",       icon: "B", color: "#EA4335", route: "/blogger" },
+  { key: "naver",       label: "네이버 블로그",  icon: "N", color: "#03C75A", route: "/naver" },
+  { key: "newsletter",  label: "뉴스레터",       icon: "M", color: "#9C27B0", route: "/newsletter" },
+  { key: "instagram",   label: "인스타그램",     icon: "I", color: "#E1306C", route: "/social" },
+  { key: "threads",     label: "Threads",        icon: "T", color: "#000000", route: "/social" },
+  { key: "cardNews",    label: "카드뉴스",       icon: "C", color: "#F9AB00", route: "/card-news" },
 ] as const;
 
 type ChannelKey = (typeof CHANNELS)[number]["key"];
@@ -183,6 +185,83 @@ function ThreadsCard({ data }: { data: ChannelContent["threads"] }) {
   );
 }
 
+function CardNewsCard({ data }: { data: NonNullable<ChannelContent["cardNews"]> }) {
+  if (!data.slides.length) {
+    return (
+      <div className="rounded-xl p-4 text-center text-[13px]"
+        style={{ backgroundColor: "rgba(249,171,0,0.08)", color: "var(--color-text-muted)" }}>
+        {data.error ?? "카드뉴스가 생성되지 않았습니다."}
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-3">
+      {data.error && (
+        <div className="rounded-lg px-3 py-2 text-[11px]"
+          style={{ backgroundColor: "rgba(249,171,0,0.1)", color: "#c47800" }}>
+          ⚠ {data.error}
+        </div>
+      )}
+      <p className="text-[11px] font-medium uppercase tracking-wider"
+        style={{ color: "var(--color-text-faint)" }}>
+        슬라이드 {data.slides.length}장
+      </p>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        {data.slides.map((slide, i) => {
+          const src = slide.imageUrl
+            ? slide.imageUrl
+            : slide.imageBase64
+            ? `data:image/png;base64,${slide.imageBase64}`
+            : null;
+          return (
+            <div key={i} className="overflow-hidden rounded-xl"
+              style={{ border: "1px solid var(--color-border)" }}>
+              <div className="relative" style={{ aspectRatio: "4 / 5", backgroundColor: "var(--color-surface-2)" }}>
+                {src ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={src} alt={slide.headline}
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-[11px]"
+                    style={{ color: "var(--color-text-faint)" }}>
+                    이미지 생성 실패
+                  </div>
+                )}
+                <div className="absolute inset-x-0 top-0 p-3"
+                  style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.55) 0%, transparent 100%)" }}>
+                  <p className="text-[13px] font-medium text-white leading-snug">
+                    {slide.headline}
+                  </p>
+                </div>
+                <div className="absolute right-2 bottom-2 rounded-full px-2 py-0.5 text-[10px] font-medium text-white"
+                  style={{ backgroundColor: "rgba(0,0,0,0.55)" }}>
+                  {i + 1}/{data.slides.length}
+                </div>
+              </div>
+              <div className="p-3 space-y-1.5">
+                <p className="text-[11px] font-medium uppercase tracking-wider"
+                  style={{ color: "var(--color-text-faint)" }}>
+                  {slide.role === "cover" ? "표지" : slide.role === "outro" ? "마무리" : `본문 ${i}`}
+                </p>
+                <p className="text-[12px] line-clamp-2" style={{ color: "var(--color-text-muted)" }}>
+                  {slide.imagePrompt}
+                </p>
+                {src && (
+                  <a href={src} download={`slide_${i + 1}.png`}
+                    className="inline-flex items-center gap-1 text-[11px] font-medium"
+                    style={{ color: "#F9AB00" }}>
+                    ↓ 다운로드
+                  </a>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ───────────────────────────── 생성 통계 배너 ─────────────────────────────
 
 function StatsBanner({ data, keyword }: { data: ChannelContent; keyword: string }) {
@@ -191,7 +270,8 @@ function StatsBanner({ data, keyword }: { data: ChannelContent; keyword: string 
   const newsletterWords = countWords(stripHtml(data.newsletter.body_html));
   const instagramWords = data.instagram.caption.length;
   const threadsWords = data.threads.text.length;
-  const totalContents = 5; // 채널 수
+  const cardSlides = data.cardNews?.slides.length ?? 0;
+  const totalContents = 5 + (cardSlides > 0 ? 1 : 0); // 텍스트 5채널 + 카드뉴스
 
   return (
     <div
@@ -228,17 +308,18 @@ function StatsBanner({ data, keyword }: { data: ChannelContent; keyword: string 
         </div>
       </div>
       {/* 채널별 글자수 바 */}
-      <div className="mt-4 grid grid-cols-5 gap-2 text-center">
+      <div className="mt-4 grid grid-cols-3 gap-2 text-center sm:grid-cols-6">
         {[
-          { label: "Blogger", words: bloggerWords, color: "#EA4335" },
-          { label: "네이버", words: naverWords, color: "#03C75A" },
-          { label: "뉴스레터", words: newsletterWords, color: "#9C27B0" },
-          { label: "인스타", words: instagramWords, color: "#E1306C" },
-          { label: "Threads", words: threadsWords, color: "#000" },
+          { label: "Blogger", value: bloggerWords.toLocaleString(), color: "#EA4335" },
+          { label: "네이버", value: naverWords.toLocaleString(), color: "#03C75A" },
+          { label: "뉴스레터", value: newsletterWords.toLocaleString(), color: "#9C27B0" },
+          { label: "인스타", value: instagramWords.toLocaleString(), color: "#E1306C" },
+          { label: "Threads", value: threadsWords.toLocaleString(), color: "#000" },
+          { label: "카드뉴스", value: cardSlides > 0 ? `${cardSlides}장` : "—", color: "#F9AB00" },
         ].map((ch) => (
           <div key={ch.label}>
             <p className="text-[13px] font-medium tabular-nums" style={{ color: ch.color }}>
-              {ch.words.toLocaleString()}
+              {ch.value}
             </p>
             <p className="text-[10px]" style={{ color: "var(--color-text-faint)" }}>{ch.label}</p>
           </div>
@@ -364,7 +445,7 @@ export function GenerateWorkbench() {
 
         <div className="mt-4 flex items-center justify-between gap-3">
           <p className="text-[12px]" style={{ color: "var(--color-text-faint)" }}>
-            5개 채널(Blogger·네이버·뉴스레터·인스타·Threads) 동시 생성
+            5개 텍스트 채널 + 카드뉴스 3장 동시 생성
           </p>
           <button
             type="submit"
@@ -449,19 +530,33 @@ export function GenerateWorkbench() {
               border: "1px solid var(--color-border)",
             }}
           >
-            {/* 채널 헤더 */}
-            <div className="mb-4 flex items-center gap-2.5">
-              {CHANNELS.filter((c) => c.key === activeChannel).map((ch) => (
-                <span key={ch.key}
-                  className="flex h-7 w-7 items-center justify-center rounded-lg text-[11px] font-bold text-white"
-                  style={{ backgroundColor: ch.color }}
-                >
-                  {ch.icon}
-                </span>
-              ))}
-              <h2 className="text-[16px] font-medium" style={{ color: "var(--color-text)" }}>
-                {CHANNELS.find((c) => c.key === activeChannel)?.label}
-              </h2>
+            {/* 채널 헤더 + 보내기 버튼 */}
+            <div className="mb-4 flex items-center justify-between gap-2.5">
+              <div className="flex items-center gap-2.5">
+                {CHANNELS.filter((c) => c.key === activeChannel).map((ch) => (
+                  <span key={ch.key}
+                    className="flex h-7 w-7 items-center justify-center rounded-lg text-[11px] font-bold text-white"
+                    style={{ backgroundColor: ch.color }}
+                  >
+                    {ch.icon}
+                  </span>
+                ))}
+                <h2 className="text-[16px] font-medium" style={{ color: "var(--color-text)" }}>
+                  {CHANNELS.find((c) => c.key === activeChannel)?.label}
+                </h2>
+              </div>
+              {result.generationId && activeChannel !== "cardNews" && (() => {
+                const ch = CHANNELS.find((c) => c.key === activeChannel)!;
+                return (
+                  <Link
+                    href={`${ch.route}?from=${result.generationId}&channel=${activeChannel}`}
+                    className="flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12px] font-medium text-white transition-all"
+                    style={{ backgroundColor: ch.color }}
+                  >
+                    → {ch.label}로 보내기
+                  </Link>
+                );
+              })()}
             </div>
 
             {/* 채널별 렌더 */}
@@ -470,6 +565,15 @@ export function GenerateWorkbench() {
             {activeChannel === "newsletter" && <NewsletterCard data={channelData.newsletter} />}
             {activeChannel === "instagram"  && <InstagramCard  data={channelData.instagram}  />}
             {activeChannel === "threads"    && <ThreadsCard    data={channelData.threads}    />}
+            {activeChannel === "cardNews"   && (channelData.cardNews
+              ? <CardNewsCard data={channelData.cardNews} />
+              : (
+                <div className="rounded-xl p-4 text-center text-[13px]"
+                  style={{ backgroundColor: "rgba(249,171,0,0.08)", color: "var(--color-text-muted)" }}>
+                  카드뉴스가 생성되지 않았습니다.
+                </div>
+              ))
+            }
           </div>
 
           {/* 재생성 버튼 */}

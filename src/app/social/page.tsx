@@ -1,12 +1,20 @@
 import type { Metadata } from "next";
 import { listBufferChannels } from "@/lib/buffer/listBufferChannels";
 import { SocialWorkbench } from "./SocialWorkbench";
+import { PrefillFromGeneration } from "../PrefillFromGeneration";
+import { getGeneration } from "@/lib/db/generations";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "소셜 · Buffer — keg-book" };
 
 type PageProps = {
-  searchParams: Promise<{ bf?: string; postId?: string; msg?: string }>;
+  searchParams: Promise<{
+    bf?: string;
+    postId?: string;
+    msg?: string;
+    from?: string;
+    channel?: string;
+  }>;
 };
 
 export default async function SocialPage({ searchParams }: PageProps) {
@@ -24,6 +32,28 @@ export default async function SocialPage({ searchParams }: PageProps) {
     }
   }
 
+  // /generate에서 넘어온 인스타·Threads 콘텐츠 프리필
+  let initialTitle: string | undefined;
+  let initialBody: string | undefined;
+  let initialHashtags: string[] | undefined;
+
+  if (sp.from) {
+    const gen = await getGeneration(sp.from).catch(() => null);
+    if (gen) {
+      const raw = gen.raw_json as Record<string, unknown>;
+      const ig = raw.instagram as { caption?: string; hashtags?: string[] } | undefined;
+      const th = raw.threads as { text?: string } | undefined;
+
+      initialTitle = gen.keyword;
+      // 캡션과 Threads 텍스트를 HTML 본문 2단락으로 결합
+      const parts: string[] = [];
+      if (ig?.caption) parts.push(`<p>${escapeHtml(ig.caption).replace(/\n/g, "<br/>")}</p>`);
+      if (th?.text) parts.push(`<p><strong>Threads:</strong> ${escapeHtml(th.text)}</p>`);
+      if (parts.length > 0) initialBody = parts.join("\n");
+      initialHashtags = ig?.hashtags;
+    }
+  }
+
   return (
     <div className="mx-auto max-w-3xl px-6 py-8 pb-16">
       <div className="mb-7 flex items-center gap-3">
@@ -34,6 +64,12 @@ export default async function SocialPage({ searchParams }: PageProps) {
           <p className="text-[12px]" style={{ color: "var(--color-text-muted)" }}>인스타그램 · Threads · Buffer 예약 큐</p>
         </div>
       </div>
+
+      <PrefillFromGeneration
+        channel={sp.channel === "threads" ? "threads" : "instagram"}
+        basePath="/social"
+        fromId={sp.from}
+      />
 
       {sp.bf === "ok" && sp.postId && (
         <div className="mb-5 text-[13px]"
@@ -55,7 +91,18 @@ export default async function SocialPage({ searchParams }: PageProps) {
         bufferChannels={bufferChannels}
         bufferListError={bufferListError}
         bufferTokenConfigured={Boolean(token)}
+        initialTitle={initialTitle}
+        initialBody={initialBody}
+        initialHashtags={initialHashtags}
       />
     </div>
   );
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }

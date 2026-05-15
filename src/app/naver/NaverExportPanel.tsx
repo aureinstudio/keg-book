@@ -25,11 +25,21 @@ function Dot({ ok }: { ok: boolean | null }) {
   return <span className="inline-block h-2 w-2 rounded-full shrink-0 mt-1" style={{ backgroundColor: color }} />;
 }
 
-export function NaverExportPanel() {
-  const [title, setTitle] = useState(DEFAULT_TITLE);
-  const [description, setDescription] = useState("");
-  const [tagsRaw, setTagsRaw] = useState("");
-  const [bodyHtml, setBodyHtml] = useState(DEFAULT_BODY);
+export function NaverExportPanel({
+  initialTitle,
+  initialDescription,
+  initialBody,
+  initialTags,
+}: {
+  initialTitle?: string;
+  initialDescription?: string;
+  initialBody?: string;
+  initialTags?: string[];
+} = {}) {
+  const [title, setTitle] = useState(initialTitle ?? DEFAULT_TITLE);
+  const [description, setDescription] = useState(initialDescription ?? "");
+  const [tagsRaw, setTagsRaw] = useState((initialTags ?? []).join(", "));
+  const [bodyHtml, setBodyHtml] = useState(initialBody ?? DEFAULT_BODY);
   const [copyState, setCopyState] = useState<"idle" | "ok" | "err">("idle");
   const [seoOpen, setSeoOpen] = useState(true);
 
