@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 import type { CardSlide } from "@/lib/gemini/generateCardNewsSlides";
-import { downloadComposedCard } from "@/lib/client/composeCardPng";
+import {
+  downloadComposedCard,
+  downloadComposedCardsAsZip,
+} from "@/lib/client/composeCardPng";
 
 const ROLE_LABEL: Record<CardSlide["role"], string> = {
   cover: "표지",
@@ -20,6 +23,38 @@ export function CardNewsResultView({
   error?: string;
 }) {
   const [busyIdx, setBusyIdx] = useState<number | null>(null);
+  const [zipBusy, setZipBusy] = useState(false);
+  const [zipMsg, setZipMsg] = useState<string | null>(null);
+
+  // ZIP에 넣을 수 있는 슬라이드(이미지가 있는 것)만 카운트
+  const zippable = slides
+    .map((s, idx) => {
+      const src = s.imageUrl ?? (s.imageBase64 ? `data:image/png;base64,${s.imageBase64}` : null);
+      return src ? { idx, slide: s, src } : null;
+    })
+    .filter((x): x is { idx: number; slide: CardSlide; src: string } => Boolean(x));
+
+  async function handleZipAll() {
+    if (zippable.length === 0) return;
+    setZipBusy(true);
+    setZipMsg(null);
+    try {
+      const safeKw = keyword.replace(/[^\w가-힣-]+/g, "_").slice(0, 30) || "card-news";
+      const inputs = zippable.map(({ idx, slide, src }) => ({
+        imgSrc: src,
+        headline: slide.headline,
+        isCover: slide.role === "cover",
+        filename: `${safeKw}-${idx + 1}-${slide.role}.png`,
+      }));
+      await downloadComposedCardsAsZip(inputs, `${safeKw}-cards.zip`);
+      setZipMsg(`ZIP 다운로드 완료 — ${zippable.length}장`);
+      setTimeout(() => setZipMsg(null), 2500);
+    } catch (e) {
+      setZipMsg(`ZIP 생성 실패: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setZipBusy(false);
+    }
+  }
 
   if (error && slides.length === 0) {
     return (
@@ -49,9 +84,41 @@ export function CardNewsResultView({
 
   return (
     <div className="space-y-4">
-      <p className="text-[12px]" style={{ color: "var(--color-text-muted)" }}>
-        ↓ PNG 다운로드 시 헤드라인이 이미지에 합성되어 저장됩니다.
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-[12px]" style={{ color: "var(--color-text-muted)" }}>
+          ↓ PNG 다운로드 시 헤드라인이 이미지에 합성되어 저장됩니다.
+        </p>
+        {zippable.length > 0 && (
+          <button
+            type="button"
+            onClick={handleZipAll}
+            disabled={zipBusy}
+            className="rounded-md px-3 py-1.5 text-[12px] font-medium transition-opacity disabled:opacity-50"
+            style={{
+              border: "1px solid var(--color-border)",
+              backgroundColor: "var(--color-surface-2)",
+              color: "var(--color-text)",
+            }}
+          >
+            {zipBusy
+              ? `ZIP 생성 중… (${zippable.length}장)`
+              : `↓ 전체 ZIP 다운로드 (${zippable.length}장)`}
+          </button>
+        )}
+      </div>
+      {zipMsg && (
+        <p
+          className="rounded px-2 py-1 text-[11px]"
+          style={{
+            backgroundColor: zipMsg.startsWith("ZIP 다운로드")
+              ? "rgba(64,64,64,0.08)"
+              : "rgba(115,115,115,0.08)",
+            color: "var(--color-text-muted)",
+          }}
+        >
+          {zipMsg}
+        </p>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2">
         {slides.map((s, idx) => {

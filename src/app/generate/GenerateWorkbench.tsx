@@ -4,7 +4,10 @@ import { useState, useTransition, useRef } from "react";
 import Link from "next/link";
 import { generateContentAction, type GenerateResult } from "./actions";
 import type { ChannelContent } from "@/lib/gemini/generateAllChannels";
-import { downloadComposedCard } from "@/lib/client/composeCardPng";
+import {
+  downloadComposedCard,
+  downloadComposedCardsAsZip,
+} from "@/lib/client/composeCardPng";
 
 // ───────────────────────────── 상수 ─────────────────────────────
 
@@ -189,7 +192,51 @@ function ThreadsCard({ data }: { data: ChannelContent["threads"] }) {
 // 카드뉴스 합성/다운로드는 공용 모듈 사용
 // → src/lib/client/composeCardPng.ts
 
-function CardNewsCard({ data }: { data: NonNullable<ChannelContent["cardNews"]> }) {
+function CardNewsCard({
+  data,
+  keyword,
+}: {
+  data: NonNullable<ChannelContent["cardNews"]>;
+  keyword: string;
+}) {
+  const [zipBusy, setZipBusy] = useState(false);
+  const [zipMsg, setZipMsg] = useState<string | null>(null);
+
+  const zippable = data.slides
+    .map((slide, i) => {
+      const src = slide.imageUrl
+        ? slide.imageUrl
+        : slide.imageBase64
+        ? `data:image/png;base64,${slide.imageBase64}`
+        : null;
+      return src ? { i, slide, src } : null;
+    })
+    .filter((x): x is { i: number; slide: typeof data.slides[number]; src: string } => Boolean(x));
+
+  async function handleZipAll() {
+    if (zippable.length === 0) return;
+    setZipBusy(true);
+    setZipMsg(null);
+    try {
+      const safeKw = keyword.replace(/[^\w가-힣-]+/g, "_").slice(0, 30) || "card-news";
+      await downloadComposedCardsAsZip(
+        zippable.map(({ i, slide, src }) => ({
+          imgSrc: src,
+          headline: slide.headline,
+          isCover: slide.role === "cover",
+          filename: `${safeKw}-${i + 1}-${slide.role}.png`,
+        })),
+        `${safeKw}-cards.zip`,
+      );
+      setZipMsg(`ZIP 다운로드 완료 — ${zippable.length}장`);
+      setTimeout(() => setZipMsg(null), 2500);
+    } catch (e) {
+      setZipMsg(`ZIP 생성 실패: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setZipBusy(false);
+    }
+  }
+
   if (!data.slides.length) {
     return (
       <div className="rounded-xl p-4 text-center text-[13px]"
@@ -206,12 +253,42 @@ function CardNewsCard({ data }: { data: NonNullable<ChannelContent["cardNews"]> 
           ⚠ {data.error}
         </div>
       )}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-[11px] font-medium uppercase tracking-wider"
           style={{ color: "var(--color-text-faint)" }}>
           슬라이드 {data.slides.length}장 · 헤드라인 포함 PNG
         </p>
+        {zippable.length > 0 && (
+          <button
+            type="button"
+            onClick={handleZipAll}
+            disabled={zipBusy}
+            className="rounded-md px-2.5 py-1 text-[11px] font-medium transition-opacity disabled:opacity-50"
+            style={{
+              border: "1px solid var(--color-border)",
+              backgroundColor: "var(--color-surface-2)",
+              color: "var(--color-text)",
+            }}
+          >
+            {zipBusy
+              ? `ZIP 생성 중… (${zippable.length})`
+              : `↓ 전체 ZIP 다운로드 (${zippable.length})`}
+          </button>
+        )}
       </div>
+      {zipMsg && (
+        <p
+          className="rounded px-2 py-1 text-[11px]"
+          style={{
+            backgroundColor: zipMsg.startsWith("ZIP 다운로드")
+              ? "rgba(64,64,64,0.08)"
+              : "rgba(115,115,115,0.08)",
+            color: "var(--color-text-muted)",
+          }}
+        >
+          {zipMsg}
+        </p>
+      )}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {data.slides.map((slide, i) => {
           const src = slide.imageUrl
@@ -592,7 +669,7 @@ export function GenerateWorkbench() {
             {activeChannel === "instagram"  && <InstagramCard  data={channelData.instagram}  />}
             {activeChannel === "threads"    && <ThreadsCard    data={channelData.threads}    />}
             {activeChannel === "cardNews"   && (channelData.cardNews
-              ? <CardNewsCard data={channelData.cardNews} />
+              ? <CardNewsCard data={channelData.cardNews} keyword={result.keyword} />
               : (
                 <div className="rounded-xl p-4 text-center text-[13px]"
                   style={{ backgroundColor: "rgba(115,115,115,0.08)", color: "var(--color-text-muted)" }}>

@@ -29,6 +29,12 @@ type Props = {
   initialTitle?: string;
   initialBody?: string;
   initialHashtags?: string[];
+  /** /generate에서 넘어온 경우 */
+  generationId?: string;
+  /** 카드뉴스 캐러셀 자동 첨부 가능 여부 */
+  carouselAvailable?: boolean;
+  /** 첨부 가능한 슬라이드 수 */
+  carouselCount?: number;
 };
 
 const inputClass =
@@ -46,6 +52,9 @@ export function SocialWorkbench({
   initialTitle,
   initialBody,
   initialHashtags,
+  generationId,
+  carouselAvailable = false,
+  carouselCount = 0,
 }: Props) {
   const [title, setTitle] = useState(initialTitle ?? "봄 학기 신간 교재 안내");
   const [bodyHtml, setBodyHtml] = useState(
@@ -131,6 +140,23 @@ export function SocialWorkbench({
   const postableChannels = bufferChannels.filter(
     (c) => !c.isLocked && !c.isDisconnected,
   );
+
+  // 선택된 채널 id → descriptor 기반 인스타 여부 판정
+  const [selectedChannelId, setSelectedChannelId] = useState<string>(
+    postableChannels[0]?.id ?? "",
+  );
+  const selectedChannel = postableChannels.find(
+    (c) => c.id === selectedChannelId,
+  );
+  // descriptor에 "instagram" 포함 시 인스타로 간주 (Buffer는 보통 @handle 형태)
+  const isInstagramSelected =
+    !!selectedChannel &&
+    (/instagram/i.test(selectedChannel.descriptor ?? "") ||
+      /instagram/i.test(selectedChannel.name ?? ""));
+
+  // 캐러셀 첨부 가능 + 인스타 선택 시 기본 ON
+  const canAttachCarousel = carouselAvailable && isInstagramSelected;
+  const [attachCarousel, setAttachCarousel] = useState<boolean>(true);
 
   return (
     <div className="flex flex-col gap-5">
@@ -444,6 +470,8 @@ export function SocialWorkbench({
               <select
                 name="channelId"
                 required
+                value={selectedChannelId}
+                onChange={(e) => setSelectedChannelId(e.target.value)}
                 className="rounded-lg px-3 py-2 text-sm"
                 style={{
                   border: "1px solid var(--color-border)",
@@ -459,6 +487,62 @@ export function SocialWorkbench({
                 ))}
               </select>
             </label>
+
+            {/* 캐러셀 자동 첨부 토글 */}
+            {generationId && carouselAvailable && (
+              <div
+                className="rounded-lg p-3"
+                style={{
+                  backgroundColor: canAttachCarousel
+                    ? "rgba(64,64,64,0.06)"
+                    : "var(--color-surface-2)",
+                  border: "1px solid var(--color-border)",
+                }}
+              >
+                <label className="flex items-start gap-2.5">
+                  <input
+                    type="checkbox"
+                    checked={canAttachCarousel && attachCarousel}
+                    disabled={!canAttachCarousel}
+                    onChange={(e) => setAttachCarousel(e.target.checked)}
+                    className="mt-0.5"
+                  />
+                  <div className="flex flex-col gap-0.5">
+                    <span
+                      className="text-[12.5px] font-medium"
+                      style={{
+                        color: canAttachCarousel
+                          ? "var(--color-text)"
+                          : "var(--color-text-faint)",
+                      }}
+                    >
+                      카드뉴스 {carouselCount}장을 인스타그램 캐러셀로 자동 첨부
+                    </span>
+                    <span
+                      className="text-[11px]"
+                      style={{ color: "var(--color-text-faint)" }}
+                    >
+                      {canAttachCarousel
+                        ? "Buffer에서 자동으로 캐러셀(여러 장) 게시물로 발행됩니다. 이미지는 Supabase Storage 공개 URL을 사용합니다."
+                        : isInstagramSelected
+                        ? "카드뉴스 슬라이드를 사용할 수 없습니다."
+                        : "캐러셀 첨부는 인스타그램 채널을 선택한 경우에만 적용됩니다."}
+                    </span>
+                  </div>
+                </label>
+                <input
+                  type="hidden"
+                  name="attachCarousel"
+                  value={canAttachCarousel && attachCarousel ? "1" : "0"}
+                />
+                <input
+                  type="hidden"
+                  name="generationId"
+                  value={generationId}
+                />
+              </div>
+            )}
+
             <label className="flex flex-col gap-1.5">
               <span className="text-xs font-medium" style={{ color: "var(--color-text-muted)" }}>
                 큐 본문 (기본: 인스타 캡션)
@@ -481,7 +565,9 @@ export function SocialWorkbench({
               className="w-fit rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors hover:opacity-90"
               style={{ backgroundColor: "var(--color-accent)" }}
             >
-              Buffer에 addToQueue
+              {canAttachCarousel && attachCarousel
+                ? `Buffer에 addToQueue (카드뉴스 ${carouselCount}장 포함)`
+                : "Buffer에 addToQueue"}
             </button>
           </form>
         )}

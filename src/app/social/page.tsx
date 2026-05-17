@@ -14,6 +14,7 @@ type PageProps = {
     bf?: string;
     postId?: string;
     msg?: string;
+    imgs?: string;
     from?: string;
     channel?: string;
   }>;
@@ -85,7 +86,10 @@ export default async function SocialPage({ searchParams }: PageProps) {
         <div className="mb-5 text-[13px]"
           style={{ backgroundColor: "rgba(64,64,64,0.08)", border: "1px solid rgba(64,64,64,0.25)", color: "#404040", borderRadius: "8px", padding: "12px 16px" }}
           role="status">
-          Buffer에 추가했습니다.{" "}
+          Buffer에 추가했습니다.
+          {Number(sp.imgs ?? 0) > 0 && (
+            <span className="ml-1.5">카드뉴스 {sp.imgs}장 첨부 완료.</span>
+          )}{" "}
           <span className="font-mono text-[11px]">post id: {sp.postId}</span>
         </div>
       )}
@@ -104,6 +108,9 @@ export default async function SocialPage({ searchParams }: PageProps) {
         initialTitle={initialTitle}
         initialBody={initialBody}
         initialHashtags={initialHashtags}
+        generationId={sp.from}
+        carouselAvailable={Boolean(showCardNews)}
+        carouselCount={cardNews?.slides?.length ?? 0}
       />
 
       {showCardNews && cardNews && genKeyword && (
