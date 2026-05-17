@@ -221,7 +221,7 @@ export async function buildZip(
   ev.setUint32(16, centralOffset, true);
   ev.setUint16(20, 0, true);
 
-  return new Blob([...parts, ...central, eocd], {
+  return new Blob([...parts, ...central, eocd] as BlobPart[], {
     type: "application/zip",
   });
 }
