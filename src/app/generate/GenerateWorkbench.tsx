@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useRef } from "react";
+import { useMemo, useState, useTransition, useRef } from "react";
 import Link from "next/link";
 import { generateContentAction, type GenerateResult } from "./actions";
 import type { ChannelContent } from "@/lib/gemini/generateAllChannels";
@@ -201,6 +201,12 @@ function CardNewsCard({
 }) {
   const [zipBusy, setZipBusy] = useState(false);
   const [zipMsg, setZipMsg] = useState<string | null>(null);
+  const originalHeadlines = useMemo(
+    () => data.slides.map((s) => s.headline),
+    [data.slides],
+  );
+  const [headlines, setHeadlines] = useState<string[]>(originalHeadlines);
+  const [editingIdx, setEditingIdx] = useState<number | null>(null);
 
   const zippable = data.slides
     .map((slide, i) => {
@@ -222,7 +228,7 @@ function CardNewsCard({
       await downloadComposedCardsAsZip(
         zippable.map(({ i, slide, src }) => ({
           imgSrc: src,
-          headline: slide.headline,
+          headline: headlines[i] ?? slide.headline,
           isCover: slide.role === "cover",
           filename: `${safeKw}-${i + 1}-${slide.role}.png`,
         })),
@@ -298,13 +304,16 @@ function CardNewsCard({
             : null;
           const isCover = slide.role === "cover";
           const roleLabel = isCover ? "표지" : slide.role === "outro" ? "마무리" : `본문 ${i}`;
+          const headline = headlines[i] ?? slide.headline;
+          const isEdited = headline !== originalHeadlines[i];
+          const isEditing = editingIdx === i;
           return (
             <div key={i} className="overflow-hidden rounded-xl"
               style={{ border: "1px solid var(--color-border)" }}>
               <div className="relative" style={{ aspectRatio: "4 / 5", backgroundColor: "var(--color-surface-2)" }}>
                 {src ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={src} alt={slide.headline} crossOrigin="anonymous"
+                  <img src={src} alt={headline} crossOrigin="anonymous"
                     style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 ) : (
                   <div className="flex h-full items-center justify-center text-[11px]"
@@ -312,7 +321,6 @@ function CardNewsCard({
                     이미지 생성 실패
                   </div>
                 )}
-                {/* 상단 역할 배지 */}
                 <div className="absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-medium text-white"
                   style={{ backgroundColor: "rgba(0,0,0,0.55)" }}>
                   {roleLabel}
@@ -321,7 +329,18 @@ function CardNewsCard({
                   style={{ backgroundColor: "rgba(0,0,0,0.55)" }}>
                   {i + 1}/{data.slides.length}
                 </div>
-                {/* 하단 그라데이션 + 헤드라인 (다운로드 PNG와 동일 레이아웃) */}
+                {isEdited && (
+                  <div
+                    className="absolute right-2 top-9 rounded-full px-2 py-0.5 text-[10px] font-medium"
+                    style={{
+                      backgroundColor: "rgba(255,255,255,0.92)",
+                      color: "#262626",
+                    }}
+                    title="원본 헤드라인에서 수정됨"
+                  >
+                    edited
+                  </div>
+                )}
                 <div className="absolute inset-x-0 bottom-0 px-4 pb-4 pt-10"
                   style={{
                     background:
@@ -334,14 +353,85 @@ function CardNewsCard({
                       textShadow: "0 1px 3px rgba(0,0,0,0.5)",
                       letterSpacing: "-0.01em",
                     }}>
-                    {slide.headline}
+                    {headline}
                   </p>
                 </div>
               </div>
               <div className="p-3 space-y-1.5">
-                <p className="text-[12px] font-medium" style={{ color: "var(--color-text)" }}>
-                  {slide.headline}
-                </p>
+                {isEditing ? (
+                  <div className="space-y-1.5">
+                    <textarea
+                      value={headline}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        setHeadlines((prev) => {
+                          const next = [...prev];
+                          next[i] = v;
+                          return next;
+                        });
+                      }}
+                      rows={2}
+                      autoFocus
+                      className="w-full rounded-md px-2 py-1 text-[12px] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+                      style={{
+                        border: "1px solid var(--color-border-strong)",
+                        backgroundColor: "var(--color-surface)",
+                        color: "var(--color-text)",
+                        resize: "vertical",
+                      }}
+                    />
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[10px]" style={{ color: "var(--color-text-faint)" }}>
+                        {headline.length}자
+                      </span>
+                      <div className="flex gap-1.5">
+                        {isEdited && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setHeadlines((prev) => {
+                                const next = [...prev];
+                                next[i] = originalHeadlines[i];
+                                return next;
+                              });
+                            }}
+                            className="rounded px-2 py-0.5 text-[11px]"
+                            style={{
+                              border: "1px solid var(--color-border)",
+                              color: "var(--color-text-muted)",
+                              backgroundColor: "transparent",
+                            }}
+                          >
+                            원본
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => setEditingIdx(null)}
+                          className="rounded px-2 py-0.5 text-[11px] font-medium text-white"
+                          style={{ backgroundColor: "#262626" }}
+                        >
+                          완료
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setEditingIdx(i)}
+                    className="flex w-full items-center justify-between rounded-md px-2 py-1 text-left text-[11px] transition-colors"
+                    style={{
+                      border: "1px dashed var(--color-border)",
+                      backgroundColor: "transparent",
+                      color: "var(--color-text)",
+                    }}
+                    title="헤드라인 인라인 편집"
+                  >
+                    <span className="truncate font-medium">✎ {headline}</span>
+                    <span style={{ color: "var(--color-text-faint)" }}>편집</span>
+                  </button>
+                )}
                 <p className="text-[11px] line-clamp-2" style={{ color: "var(--color-text-faint)" }}>
                   {slide.imagePrompt}
                 </p>
@@ -349,7 +439,7 @@ function CardNewsCard({
                   <button
                     type="button"
                     onClick={() =>
-                      downloadComposedCard(src, slide.headline, isCover, `slide_${i + 1}.png`)
+                      downloadComposedCard(src, headline, isCover, `slide_${i + 1}.png`)
                     }
                     className="inline-flex items-center gap-1 text-[11px] font-medium hover:underline"
                     style={{ color: "#737373" }}>
