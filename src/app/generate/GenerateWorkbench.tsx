@@ -375,11 +375,14 @@ function CardNewsCard({
                     background: `linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,${gradA}) 55%, rgba(0,0,0,${gradB}) 100%)`,
                   }}>
                   <p
-                    className="font-bold text-white leading-tight"
+                    className="text-white leading-tight"
                     style={{
                       fontSize: `${previewFontSize}px`,
-                      textShadow: "0 1px 3px rgba(0,0,0,0.5)",
+                      fontWeight: 800,
+                      textShadow:
+                        "0 0 4px rgba(0,0,0,0.6), 0 1px 3px rgba(0,0,0,0.5)",
                       letterSpacing: "-0.01em",
+                      WebkitTextStroke: `${Math.max(1, previewFontSize * 0.04)}px rgba(0,0,0,0.55)`,
                     }}>
                     {headline}
                   </p>

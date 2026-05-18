@@ -90,17 +90,41 @@ export async function composeCardPng(
   const padBottom = Math.round(H * bottomOffset);
   const maxWidth = W - padX * 2;
 
-  ctx.font = `700 ${fontSize}px "Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif`;
+  ctx.font = `800 ${fontSize}px "Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif`;
   ctx.textBaseline = "alphabetic";
-  ctx.fillStyle = "#ffffff";
-  ctx.shadowColor = "rgba(0,0,0,0.45)";
-  ctx.shadowBlur = Math.round(fontSize * 0.25);
+
+  // ── 가독성 보강 ────────────────────────────────────────────
+  // 어떤 배경 위에서도 흰 글씨가 살아나도록 외곽선(stroke) + 그림자(shadow)를 함께 깐다.
+  // 그라데이션 강도를 0으로 둔 사용자에게 특히 중요 (그라데이션 없이도 텍스트가 안 묻힘).
+  //   - stroke: 폰트 크기의 ~7% 두께, 어두운 반투명 색 → 헤일로처럼 글자 둘레만 어둡게
+  //   - shadow: 약간의 블러 + 작은 오프셋 → 입체감
+  const strokeWidth = Math.max(2, Math.round(fontSize * 0.07));
+  ctx.lineJoin = "round";
+  ctx.miterLimit = 2;
+  ctx.strokeStyle = "rgba(0,0,0,0.7)";
+  ctx.lineWidth = strokeWidth;
+
+  ctx.shadowColor = "rgba(0,0,0,0.55)";
+  ctx.shadowBlur = Math.round(fontSize * 0.3);
   ctx.shadowOffsetY = Math.round(fontSize * 0.05);
+
+  ctx.fillStyle = "#ffffff";
 
   const lines = wrapKoreanText(ctx, headline, maxWidth);
   const startY = H - padBottom - lineHeight * (lines.length - 1);
   for (let i = 0; i < lines.length; i++) {
-    ctx.fillText(lines[i], padX, startY + lineHeight * i);
+    const y = startY + lineHeight * i;
+    // stroke부터 (shadow는 stroke에만 적용되어 헤일로 효과) → 그 후 fill로 본문
+    ctx.strokeText(lines[i], padX, y);
+    // 두 번째 draw에서 shadow를 끈다 — fill 자체에 그림자가 겹쳐 흐려지는 것 방지
+    ctx.shadowColor = "transparent";
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.fillText(lines[i], padX, y);
+    // 다음 줄을 위해 다시 켠다
+    ctx.shadowColor = "rgba(0,0,0,0.55)";
+    ctx.shadowBlur = Math.round(fontSize * 0.3);
+    ctx.shadowOffsetY = Math.round(fontSize * 0.05);
   }
 
   return await new Promise<Blob>((resolve, reject) => {

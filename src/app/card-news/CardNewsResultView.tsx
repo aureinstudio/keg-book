@@ -195,10 +195,13 @@ export function CardNewsResultView({
                   }}
                 >
                   <p
-                    className="font-bold leading-snug text-white"
+                    className="leading-snug text-white"
                     style={{
                       fontSize: `${previewFontSize}px`,
-                      textShadow: "0 2px 6px rgba(0,0,0,0.45)",
+                      fontWeight: 800,
+                      textShadow:
+                        "0 0 4px rgba(0,0,0,0.6), 0 2px 6px rgba(0,0,0,0.45)",
+                      WebkitTextStroke: `${Math.max(1, previewFontSize * 0.04)}px rgba(0,0,0,0.55)`,
                       fontFamily:
                         '"Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif',
                     }}
