@@ -20,11 +20,43 @@ function wrapKoreanText(
   return lines;
 }
 
+/** 카드뉴스 합성 옵션 — 모두 선택적. 기본값은 기존 동작과 동일. */
+export type CardComposeOptions = {
+  /** 헤드라인 글자 크기 배율. 0.5 ~ 1.6 권장 (기본 1) */
+  fontScale?: number;
+  /** 헤드라인 마지막 줄을 이미지 하단에서 얼마나 위로 띄울지(이미지 높이 비율).
+   *  0.04 ~ 0.4 권장 (기본 0.08) */
+  bottomOffset?: number;
+  /** 하단 어둠 그라데이션 강도. 0 = 그라데이션 없음, 1 = 기본 (기본 1) */
+  gradientStrength?: number;
+};
+
+const DEFAULT_FONT_SCALE = 1;
+const DEFAULT_BOTTOM_OFFSET = 0.08;
+const DEFAULT_GRADIENT_STRENGTH = 1;
+
+function clamp(n: number, lo: number, hi: number): number {
+  return Math.min(hi, Math.max(lo, n));
+}
+
 export async function composeCardPng(
   imgSrc: string,
   headline: string,
   isCover: boolean,
+  options?: CardComposeOptions,
 ): Promise<Blob> {
+  const fontScale = clamp(options?.fontScale ?? DEFAULT_FONT_SCALE, 0.5, 1.6);
+  const bottomOffset = clamp(
+    options?.bottomOffset ?? DEFAULT_BOTTOM_OFFSET,
+    0.02,
+    0.45,
+  );
+  const gradStrength = clamp(
+    options?.gradientStrength ?? DEFAULT_GRADIENT_STRENGTH,
+    0,
+    1,
+  );
+
   const img = new Image();
   img.crossOrigin = "anonymous";
   await new Promise<void>((resolve, reject) => {
@@ -43,17 +75,19 @@ export async function composeCardPng(
 
   ctx.drawImage(img, 0, 0, W, H);
 
-  const grad = ctx.createLinearGradient(0, H * 0.35, 0, H);
-  grad.addColorStop(0, "rgba(0,0,0,0)");
-  grad.addColorStop(0.6, "rgba(0,0,0,0.55)");
-  grad.addColorStop(1, "rgba(0,0,0,0.85)");
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, W, H);
+  if (gradStrength > 0) {
+    const grad = ctx.createLinearGradient(0, H * 0.35, 0, H);
+    grad.addColorStop(0, "rgba(0,0,0,0)");
+    grad.addColorStop(0.6, `rgba(0,0,0,${(0.55 * gradStrength).toFixed(3)})`);
+    grad.addColorStop(1, `rgba(0,0,0,${(0.85 * gradStrength).toFixed(3)})`);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+  }
 
-  const fontSize = Math.round(W * (isCover ? 0.085 : 0.065));
+  const fontSize = Math.round(W * (isCover ? 0.085 : 0.065) * fontScale);
   const lineHeight = Math.round(fontSize * 1.25);
   const padX = Math.round(W * 0.07);
-  const padBottom = Math.round(H * 0.08);
+  const padBottom = Math.round(H * bottomOffset);
   const maxWidth = W - padX * 2;
 
   ctx.font = `700 ${fontSize}px "Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif`;
@@ -83,9 +117,10 @@ export async function downloadComposedCard(
   headline: string,
   isCover: boolean,
   filename: string,
+  options?: CardComposeOptions,
 ) {
   try {
-    const blob = await composeCardPng(imgSrc, headline, isCover);
+    const blob = await composeCardPng(imgSrc, headline, isCover, options);
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -231,6 +266,7 @@ export type ZipSlideInput = {
   headline: string;
   isCover: boolean;
   filename: string;
+  options?: CardComposeOptions;
 };
 
 /** 카드뉴스 슬라이드들을 합성 → ZIP으로 묶어 한 번에 다운로드. */
@@ -242,7 +278,7 @@ export async function downloadComposedCardsAsZip(
   const blobs = await Promise.all(
     slides.map(async (s) => ({
       name: s.filename,
-      data: await composeCardPng(s.imgSrc, s.headline, s.isCover),
+      data: await composeCardPng(s.imgSrc, s.headline, s.isCover, s.options),
     })),
   );
   const zip = await buildZip(blobs);

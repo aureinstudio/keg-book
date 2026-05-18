@@ -15,10 +15,24 @@ type PageProps = {
     postId?: string;
     msg?: string;
     imgs?: string;
+    warn?: string;
     from?: string;
     channel?: string;
   }>;
 };
+
+function warnMessage(code: string): string | null {
+  switch (code) {
+    case "no-slides":
+      return "카드뉴스가 생성되지 않아 캐러셀 없이 텍스트만 발행되었습니다.";
+    case "no-public-urls":
+      return "카드뉴스 슬라이드의 공개 URL이 없어 캐러셀이 첨부되지 않았습니다. (Supabase Storage 업로드 확인 필요)";
+    case "fetch-failed":
+      return "캐러셀 첨부용 데이터를 불러오지 못해 텍스트만 발행되었습니다.";
+    default:
+      return null;
+  }
+}
 
 export default async function SocialPage({ searchParams }: PageProps) {
   const sp = await searchParams;
@@ -31,7 +45,11 @@ export default async function SocialPage({ searchParams }: PageProps) {
     try {
       bufferChannels = await listBufferChannels(token);
     } catch (e) {
-      bufferListError = e instanceof Error ? e.message : "Buffer API 오류";
+      const raw = e instanceof Error ? e.message : "Buffer API 오류";
+      const s = raw.toLowerCase();
+      bufferListError = /401|unauthor|invalid token|token expired|forbidden/.test(s)
+        ? "Buffer 토큰이 만료되었거나 권한이 없습니다. Vercel 환경변수의 BUFFER_API_ACCESS_TOKEN 을 갱신해 주세요."
+        : raw.slice(0, 220);
     }
   }
 
@@ -91,6 +109,11 @@ export default async function SocialPage({ searchParams }: PageProps) {
             <span className="ml-1.5">카드뉴스 {sp.imgs}장 첨부 완료.</span>
           )}{" "}
           <span className="font-mono text-[11px]">post id: {sp.postId}</span>
+          {sp.warn && warnMessage(sp.warn) && (
+            <div className="mt-1.5 text-[12px]" style={{ color: "#737373" }}>
+              ⚠ {warnMessage(sp.warn)}
+            </div>
+          )}
         </div>
       )}
       {sp.bf === "err" && sp.msg && (

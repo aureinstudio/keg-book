@@ -8,6 +8,12 @@ import {
   downloadComposedCard,
   downloadComposedCardsAsZip,
 } from "@/lib/client/composeCardPng";
+import {
+  CardComposeControls,
+  DEFAULTS,
+  isCustomized,
+  type CardComposeValues,
+} from "@/app/card-news/CardComposeControls";
 
 // ───────────────────────────── 상수 ─────────────────────────────
 
@@ -207,6 +213,18 @@ function CardNewsCard({
   );
   const [headlines, setHeadlines] = useState<string[]>(originalHeadlines);
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
+  const [composeValues, setComposeValues] = useState<CardComposeValues[]>(() =>
+    data.slides.map(() => ({ ...DEFAULTS })),
+  );
+  const [tuningIdx, setTuningIdx] = useState<number | null>(null);
+
+  function updateCompose(i: number, next: CardComposeValues) {
+    setComposeValues((prev) => {
+      const arr = [...prev];
+      arr[i] = next;
+      return arr;
+    });
+  }
 
   const zippable = data.slides
     .map((slide, i) => {
@@ -231,6 +249,7 @@ function CardNewsCard({
           headline: headlines[i] ?? slide.headline,
           isCover: slide.role === "cover",
           filename: `${safeKw}-${i + 1}-${slide.role}.png`,
+          options: composeValues[i] ?? DEFAULTS,
         })),
         `${safeKw}-cards.zip`,
       );
@@ -307,6 +326,13 @@ function CardNewsCard({
           const headline = headlines[i] ?? slide.headline;
           const isEdited = headline !== originalHeadlines[i];
           const isEditing = editingIdx === i;
+          const cv = composeValues[i] ?? DEFAULTS;
+          const cvCustomized = isCustomized(cv);
+          const isTuning = tuningIdx === i;
+          const previewFontSize = (isCover ? 20 : 16) * cv.fontScale;
+          const previewPadBottomPct = cv.bottomOffset * 100;
+          const gradA = (0.55 * cv.gradientStrength).toFixed(3);
+          const gradB = (0.85 * cv.gradientStrength).toFixed(3);
           return (
             <div key={i} className="overflow-hidden rounded-xl"
               style={{ border: "1px solid var(--color-border)" }}>
@@ -341,15 +367,17 @@ function CardNewsCard({
                     edited
                   </div>
                 )}
-                <div className="absolute inset-x-0 bottom-0 px-4 pb-4 pt-10"
+                <div
+                  className="absolute inset-x-0 px-4 pt-10"
                   style={{
-                    background:
-                      "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 55%, rgba(0,0,0,0.85) 100%)",
+                    bottom: `${previewPadBottomPct}%`,
+                    paddingBottom: 0,
+                    background: `linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,${gradA}) 55%, rgba(0,0,0,${gradB}) 100%)`,
                   }}>
                   <p
                     className="font-bold text-white leading-tight"
                     style={{
-                      fontSize: isCover ? "20px" : "16px",
+                      fontSize: `${previewFontSize}px`,
                       textShadow: "0 1px 3px rgba(0,0,0,0.5)",
                       letterSpacing: "-0.01em",
                     }}>
@@ -435,11 +463,41 @@ function CardNewsCard({
                 <p className="text-[11px] line-clamp-2" style={{ color: "var(--color-text-faint)" }}>
                   {slide.imagePrompt}
                 </p>
+
+                <button
+                  type="button"
+                  onClick={() => setTuningIdx(isTuning ? null : i)}
+                  className="flex w-full items-center justify-between rounded-md px-2 py-1 text-[11px] transition-colors"
+                  style={{
+                    border: "1px solid var(--color-border)",
+                    backgroundColor: isTuning ? "var(--color-surface-2)" : "transparent",
+                    color: "var(--color-text-muted)",
+                  }}
+                >
+                  <span>⚙ 합성 조정 {cvCustomized ? "(수정됨)" : ""}</span>
+                  <span style={{ color: "var(--color-text-faint)" }}>
+                    {isTuning ? "▲" : "▼"}
+                  </span>
+                </button>
+                {isTuning && (
+                  <CardComposeControls
+                    value={cv}
+                    onChange={(next) => updateCompose(i, next)}
+                    compact
+                  />
+                )}
+
                 {src && (
                   <button
                     type="button"
                     onClick={() =>
-                      downloadComposedCard(src, headline, isCover, `slide_${i + 1}.png`)
+                      downloadComposedCard(
+                        src,
+                        headline,
+                        isCover,
+                        `slide_${i + 1}.png`,
+                        cv,
+                      )
                     }
                     className="inline-flex items-center gap-1 text-[11px] font-medium hover:underline"
                     style={{ color: "#737373" }}>

@@ -141,6 +141,13 @@ function badge(status: CheckStatus) {
   );
 }
 
+function getAdminEmails(): string[] {
+  return (process.env.ADMIN_EMAILS ?? "")
+    .split(/[,;\s]+/)
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+}
+
 export default async function DbHealthPage() {
   const session = await auth();
   if (!session?.user) {
@@ -158,6 +165,39 @@ export default async function DbHealthPage() {
           style={{ backgroundColor: "#262626" }}
         >
           로그인
+        </Link>
+      </div>
+    );
+  }
+
+  // ADMIN_EMAILS 화이트리스트 — env가 비어있으면 모든 로그인 사용자 허용(초기 운영 편의)
+  const adminEmails = getAdminEmails();
+  const userEmail = (session.user.email ?? "").toLowerCase();
+  const whitelistConfigured = adminEmails.length > 0;
+  const isAdmin = whitelistConfigured ? adminEmails.includes(userEmail) : true;
+
+  if (!isAdmin) {
+    return (
+      <div className="mx-auto max-w-md px-6 py-16 text-center">
+        <h1 className="text-[18px] font-normal" style={{ color: "var(--color-text)" }}>
+          접근 권한 없음
+        </h1>
+        <p
+          className="mt-2 text-[13px]"
+          style={{ color: "var(--color-text-muted)", lineHeight: 1.6 }}
+        >
+          이 진단 페이지는 ADMIN_EMAILS 화이트리스트에 등록된 운영자만 볼 수 있습니다.
+          <br />
+          <code className="text-[12px]" style={{ color: "var(--color-text-faint)" }}>
+            {userEmail || "(이메일 없음)"}
+          </code>
+        </p>
+        <Link
+          href="/"
+          className="mt-6 inline-block text-[13px]"
+          style={{ color: "var(--color-accent)" }}
+        >
+          ← 홈으로
         </Link>
       </div>
     );
@@ -187,6 +227,24 @@ export default async function DbHealthPage() {
           Supabase 마이그레이션(002, 003)과 필수 환경변수의 실제 적용 상태를 확인합니다.
         </p>
       </div>
+
+      {!whitelistConfigured && (
+        <div
+          className="mb-5 rounded-lg px-4 py-3 text-[12px]"
+          style={{
+            backgroundColor: "rgba(115,115,115,0.12)",
+            border: "1px solid rgba(115,115,115,0.3)",
+            color: "#525252",
+            lineHeight: 1.6,
+          }}
+          role="alert"
+        >
+          <strong style={{ color: "#262626" }}>잠금 미설정.</strong> 현재 모든 로그인
+          사용자가 이 페이지를 볼 수 있습니다. Vercel 환경변수에{" "}
+          <code style={{ color: "#262626" }}>ADMIN_EMAILS=you@example.com,...</code>{" "}
+          를 추가하면 화이트리스트만 접근 가능합니다.
+        </div>
+      )}
 
       <div
         className="mb-6 grid grid-cols-3 gap-3"

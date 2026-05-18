@@ -6,6 +6,12 @@ import {
   downloadComposedCard,
   downloadComposedCardsAsZip,
 } from "@/lib/client/composeCardPng";
+import {
+  CardComposeControls,
+  DEFAULTS,
+  isCustomized,
+  type CardComposeValues,
+} from "./CardComposeControls";
 
 const ROLE_LABEL: Record<CardSlide["role"], string> = {
   cover: "표지",
@@ -31,6 +37,18 @@ export function CardNewsResultView({
   );
   const [headlines, setHeadlines] = useState<string[]>(originalHeadlines);
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
+  const [composeValues, setComposeValues] = useState<CardComposeValues[]>(() =>
+    slides.map(() => ({ ...DEFAULTS })),
+  );
+  const [tuningIdx, setTuningIdx] = useState<number | null>(null);
+
+  function updateCompose(i: number, next: CardComposeValues) {
+    setComposeValues((prev) => {
+      const arr = [...prev];
+      arr[i] = next;
+      return arr;
+    });
+  }
 
   const zippable = slides
     .map((s, idx) => {
@@ -51,6 +69,7 @@ export function CardNewsResultView({
         headline: headlines[idx] ?? slide.headline,
         isCover: slide.role === "cover",
         filename: `${safeKw}-${idx + 1}-${slide.role}.png`,
+        options: composeValues[idx] ?? DEFAULTS,
       }));
       await downloadComposedCardsAsZip(inputs, `${safeKw}-cards.zip`);
       setZipMsg(`ZIP 다운로드 완료 — ${zippable.length}장`);
@@ -135,6 +154,13 @@ export function CardNewsResultView({
           const isEditing = editingIdx === idx;
           const filename = `${keyword}-card-${idx + 1}-${s.role}.png`;
           const busy = busyIdx === idx;
+          const cv = composeValues[idx] ?? DEFAULTS;
+          const cvCustomized = isCustomized(cv);
+          const isTuning = tuningIdx === idx;
+          const previewFontSize = (isCover ? 20 : 16) * cv.fontScale;
+          const previewPadBottomPct = cv.bottomOffset * 100;
+          const gradOpaqueA = (0.55 * cv.gradientStrength).toFixed(3);
+          const gradOpaqueB = (0.85 * cv.gradientStrength).toFixed(3);
 
           return (
             <div
@@ -161,16 +187,17 @@ export function CardNewsResultView({
                 )}
 
                 <div
-                  className="absolute inset-x-0 bottom-0 px-4 pb-4 pt-12"
+                  className="absolute inset-x-0 px-4 pt-12"
                   style={{
-                    background:
-                      "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0) 100%)",
+                    bottom: `${previewPadBottomPct}%`,
+                    paddingBottom: 0,
+                    background: `linear-gradient(to top, rgba(0,0,0,${gradOpaqueB}) 0%, rgba(0,0,0,${gradOpaqueA}) 60%, rgba(0,0,0,0) 100%)`,
                   }}
                 >
                   <p
                     className="font-bold leading-snug text-white"
                     style={{
-                      fontSize: isCover ? "20px" : "16px",
+                      fontSize: `${previewFontSize}px`,
                       textShadow: "0 2px 6px rgba(0,0,0,0.45)",
                       fontFamily:
                         '"Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif',
@@ -290,6 +317,29 @@ export function CardNewsResultView({
                 >
                   프롬프트: {s.imagePrompt}
                 </p>
+
+                <button
+                  type="button"
+                  onClick={() => setTuningIdx(isTuning ? null : idx)}
+                  className="flex w-full items-center justify-between rounded-md px-2 py-1 text-[11px] transition-colors"
+                  style={{
+                    border: "1px solid var(--color-border)",
+                    backgroundColor: isTuning ? "var(--color-surface-2)" : "transparent",
+                    color: "var(--color-text-muted)",
+                  }}
+                >
+                  <span>⚙ 합성 조정 {cvCustomized ? "(수정됨)" : ""}</span>
+                  <span style={{ color: "var(--color-text-faint)" }}>
+                    {isTuning ? "▲" : "▼"}
+                  </span>
+                </button>
+                {isTuning && (
+                  <CardComposeControls
+                    value={cv}
+                    onChange={(next) => updateCompose(idx, next)}
+                  />
+                )}
+
                 <button
                   type="button"
                   disabled={!src || busy}
@@ -297,7 +347,7 @@ export function CardNewsResultView({
                     if (!src) return;
                     setBusyIdx(idx);
                     try {
-                      await downloadComposedCard(src, headline, isCover, filename);
+                      await downloadComposedCard(src, headline, isCover, filename, cv);
                     } finally {
                       setBusyIdx(null);
                     }
