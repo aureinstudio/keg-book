@@ -34,6 +34,17 @@ export type ChannelContent = {
     text: string;
   };
   cardNews?: CardNewsContent;
+  /**
+   * 채널별 생성 실패 사유. 부분 성공 시 실패 채널만 키로 표시되고
+   * 해당 채널은 placeholder 콘텐츠로 채워진다. UI에서 상단 배너로 노출.
+   * 모든 채널이 성공하면 이 필드 자체가 없거나 빈 객체.
+   */
+  _errors?: Partial<
+    Record<
+      "blogger" | "naver" | "newsletter" | "instagram" | "threads" | "cardNews",
+      string
+    >
+  >;
 };
 
 export type GenerateAllChannelsParams = {
@@ -65,6 +76,51 @@ function stripCodeBlock(raw: string): string {
     .replace(/\s*```$/, "")
     .trim();
 }
+
+/**
+ * 1회 재시도 가능한 작업 실행기 — Gemini/Claude 호출이 429나 일시 5xx로
+ * 깜빡일 때 사용자에게 즉시 실패로 보이지 않게 한 번 더 시도한다.
+ * 두 번째 시도는 300ms 백오프 후 한 번만.
+ */
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  label: string,
+): Promise<T> {
+  try {
+    return await fn();
+  } catch (e1) {
+    const msg = e1 instanceof Error ? e1.message : String(e1);
+    console.warn(`[generate] ${label} 1차 실패, 재시도: ${msg.slice(0, 200)}`);
+    await new Promise((r) => setTimeout(r, 300));
+    return await fn();
+  }
+}
+
+// 채널별 placeholder — 부분 실패 시 이 값으로 채운다.
+const PLACEHOLDER: Pick<
+  ChannelContent,
+  "blogger" | "naver" | "newsletter" | "instagram" | "threads"
+> = {
+  blogger: {
+    title: "(생성 실패)",
+    content_html: "<p>이 채널 생성에 실패했습니다. 재시도해 주세요.</p>",
+    description: "",
+    labels: [],
+  },
+  naver: {
+    title: "(생성 실패)",
+    content_html: "<p>이 채널 생성에 실패했습니다. 재시도해 주세요.</p>",
+    description: "",
+    tags: [],
+  },
+  newsletter: {
+    subject: "(생성 실패)",
+    preheader: "",
+    body_html: "<p>뉴스레터 생성에 실패했습니다.</p>",
+  },
+  instagram: { caption: "(생성 실패)", hashtags: [] },
+  threads: { text: "(생성 실패)" },
+};
 
 // 블로거 + 네이버: Claude (장문 고품질)
 async function generateLongForm(
@@ -155,6 +211,7 @@ export async function generateAllChannels(
   params: GenerateAllChannelsParams,
 ): Promise<ChannelContent> {
   const cardNewsCount = params.cardNewsCount ?? 3;
+  const _errors: NonNullable<ChannelContent["_errors"]> = {};
 
   // 카드뉴스는 텍스트 채널과 병렬로 시작 (실패해도 텍스트는 살림)
   const cardNewsPromise: Promise<CardNewsContent | undefined> =
@@ -172,7 +229,7 @@ export async function generateAllChannels(
         }))
       : Promise.resolve(undefined);
 
-  // Anthropic 키가 없으면 Gemini로 전체 생성
+  // ── 분기 1: Anthropic 키 없음 → Gemini 단일 호출
   if (!params.anthropicApiKey) {
     const ai = new GoogleGenAI({ apiKey: params.apiKey });
     const meta = buildMeta(params);
@@ -190,25 +247,118 @@ ${meta}
   "instagram": { "caption": "캡션 (이모지 포함)", "hashtags": ["#태그"] },
   "threads": { "text": "Threads 글" }
 }`;
-    const [textResp, cardNews] = await Promise.all([
-      ai.models.generateContent({
+
+    const textPromise = withRetry(async () => {
+      const r = await ai.models.generateContent({
         model: FLASH_MODEL,
         contents: [{ role: "user", parts: [{ text: prompt }] }],
         config: { systemInstruction: SYSTEM_PROMPT, temperature: 0.7, maxOutputTokens: 8192 },
-      }),
+      });
+      return JSON.parse(stripCodeBlock(r.text?.trim() ?? "")) as ChannelContent;
+    }, "Gemini single-call");
+
+    const [textResult, cardNews] = await Promise.allSettled([
+      textPromise,
       cardNewsPromise,
     ]);
-    const raw = textResp.text?.trim() ?? "";
-    const parsed = JSON.parse(stripCodeBlock(raw)) as ChannelContent;
-    return { ...parsed, cardNews };
+
+    let body: ChannelContent;
+    if (textResult.status === "fulfilled") {
+      body = textResult.value;
+    } else {
+      const msg =
+        textResult.reason instanceof Error
+          ? textResult.reason.message
+          : String(textResult.reason);
+      console.error(`[generate] Gemini 단일 호출 실패: ${msg}`);
+      // 5개 채널 전부 placeholder + 동일 사유 기록
+      body = { ...PLACEHOLDER } as ChannelContent;
+      _errors.blogger = msg;
+      _errors.naver = msg;
+      _errors.newsletter = msg;
+      _errors.instagram = msg;
+      _errors.threads = msg;
+    }
+
+    const cardNewsValue =
+      cardNews.status === "fulfilled" ? cardNews.value : undefined;
+    if (cardNews.status === "rejected") {
+      _errors.cardNews =
+        cardNews.reason instanceof Error
+          ? cardNews.reason.message
+          : String(cardNews.reason);
+    } else if (cardNewsValue?.error) {
+      _errors.cardNews = cardNewsValue.error;
+    }
+
+    return {
+      ...body,
+      cardNews: cardNewsValue,
+      ...(Object.keys(_errors).length ? { _errors } : {}),
+    };
   }
 
-  // 병렬 생성: 블로그(Claude) + 소셜(Gemini) + 카드뉴스(Gemini Image)
-  const [longForm, shortForm, cardNews] = await Promise.all([
-    generateLongForm(params),
-    generateShortForm(params),
+  // ── 분기 2: Claude(장문) + Gemini(소셜) + Gemini Image(카드뉴스) 병렬
+  const longFormRetry = withRetry(() => generateLongForm(params), "Claude long-form");
+  const shortFormRetry = withRetry(() => generateShortForm(params), "Gemini short-form");
+
+  const [longResult, shortResult, cardResult] = await Promise.allSettled([
+    longFormRetry,
+    shortFormRetry,
     cardNewsPromise,
   ]);
 
-  return { ...longForm, ...shortForm, cardNews };
+  // longForm 결과 처리 (blogger + naver)
+  let longForm: Pick<ChannelContent, "blogger" | "naver">;
+  if (longResult.status === "fulfilled") {
+    longForm = longResult.value;
+  } else {
+    const msg =
+      longResult.reason instanceof Error
+        ? longResult.reason.message
+        : String(longResult.reason);
+    console.error(`[generate] Claude long-form 실패: ${msg}`);
+    longForm = { blogger: PLACEHOLDER.blogger, naver: PLACEHOLDER.naver };
+    _errors.blogger = msg;
+    _errors.naver = msg;
+  }
+
+  // shortForm 결과 처리 (newsletter + instagram + threads)
+  let shortForm: Pick<ChannelContent, "newsletter" | "instagram" | "threads">;
+  if (shortResult.status === "fulfilled") {
+    shortForm = shortResult.value;
+  } else {
+    const msg =
+      shortResult.reason instanceof Error
+        ? shortResult.reason.message
+        : String(shortResult.reason);
+    console.error(`[generate] Gemini short-form 실패: ${msg}`);
+    shortForm = {
+      newsletter: PLACEHOLDER.newsletter,
+      instagram: PLACEHOLDER.instagram,
+      threads: PLACEHOLDER.threads,
+    };
+    _errors.newsletter = msg;
+    _errors.instagram = msg;
+    _errors.threads = msg;
+  }
+
+  // cardNews 결과 처리
+  const cardNewsValue =
+    cardResult.status === "fulfilled" ? cardResult.value : undefined;
+  if (cardResult.status === "rejected") {
+    _errors.cardNews =
+      cardResult.reason instanceof Error
+        ? cardResult.reason.message
+        : String(cardResult.reason);
+  } else if (cardNewsValue?.error) {
+    _errors.cardNews = cardNewsValue.error;
+  }
+
+  return {
+    ...longForm,
+    ...shortForm,
+    cardNews: cardNewsValue,
+    ...(Object.keys(_errors).length ? { _errors } : {}),
+  };
 }

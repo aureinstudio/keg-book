@@ -746,6 +746,34 @@ export function GenerateWorkbench() {
       {/* 결과 */}
       {result?.ok && channelData && (
         <>
+          {/* 부분 실패 경고 — 일부 채널만 실패한 경우 */}
+          {channelData._errors && Object.keys(channelData._errors).length > 0 && (
+            <div
+              className="mb-4 rounded-xl px-4 py-3 text-[12px]"
+              style={{
+                backgroundColor: "rgba(180,140,40,0.10)",
+                border: "1px solid rgba(180,140,40,0.35)",
+                color: "#7a5a10",
+              }}
+              role="alert"
+            >
+              <p className="mb-1 font-medium" style={{ color: "#6a4a00" }}>
+                ⚠ 일부 채널 생성에 실패했습니다 (다른 채널은 정상)
+              </p>
+              <ul className="ml-4 list-disc space-y-0.5">
+                {Object.entries(channelData._errors).map(([k, v]) => (
+                  <li key={k}>
+                    <strong>{k}</strong>: {String(v).slice(0, 160)}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-2" style={{ color: "#7a5a10" }}>
+                다시 생성하려면 같은 키워드로 한 번 더 시도해 주세요. (API 일시
+                오류는 자동 1회 재시도되었습니다.)
+              </p>
+            </div>
+          )}
+
           {/* 통계 배너 */}
           <StatsBanner data={channelData} keyword={result.keyword} />
 
