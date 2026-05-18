@@ -2,6 +2,7 @@
 
 import { buildNaverExportHtml } from "@/lib/naver/buildNaverExportHtml";
 import { useMemo, useState } from "react";
+import { logNaverExport } from "./actions";
 
 const DEFAULT_TITLE = "교재 소개 제목 (예시)";
 const DEFAULT_BODY = `<p>여기에 본문 HTML을 붙여 넣거나 직접 수정하세요.</p>
@@ -30,11 +31,13 @@ export function NaverExportPanel({
   initialDescription,
   initialBody,
   initialTags,
+  generationId,
 }: {
   initialTitle?: string;
   initialDescription?: string;
   initialBody?: string;
   initialTags?: string[];
+  generationId?: string;
 } = {}) {
   const [title, setTitle] = useState(initialTitle ?? DEFAULT_TITLE);
   const [description, setDescription] = useState(initialDescription ?? "");
@@ -103,6 +106,13 @@ export function NaverExportPanel({
       await navigator.clipboard.writeText(exportHtml);
       setCopyState("ok");
       setTimeout(() => setCopyState("idle"), 2000);
+      // 활동 로그에 발행(복사) 흔적 — 실패해도 UX 영향 없음
+      void logNaverExport({
+        title,
+        generationId: generationId ?? null,
+        tagCount: tagList.length,
+        bodyLen,
+      });
     } catch {
       setCopyState("err");
       setTimeout(() => setCopyState("idle"), 3000);

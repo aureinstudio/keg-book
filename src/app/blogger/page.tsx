@@ -224,6 +224,7 @@ export default async function BloggerPage({ searchParams }: PageProps) {
       {!blogError && blogs.length > 0 && (
         <BloggerDraftForm
           blogs={blogs.map((b) => ({ id: b.id, name: b.name }))}
+          generationId={sp.from}
           {...(await loadBloggerPrefill(sp.from))}
         />
       )}

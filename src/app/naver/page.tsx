@@ -54,6 +54,7 @@ export default async function NaverAssistPage({
             initialDescription={initialDescription}
             initialBody={initialBody}
             initialTags={initialTags}
+            generationId={fromId}
           />
         </div>
 

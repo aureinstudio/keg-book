@@ -36,12 +36,14 @@ export function BloggerDraftForm({
   initialDescription,
   initialLabels,
   initialContent,
+  generationId,
 }: {
   blogs: Blog[];
   initialTitle?: string;
   initialDescription?: string;
   initialLabels?: string[];
   initialContent?: string;
+  generationId?: string;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
   const [title, setTitle] = useState(initialTitle ?? "keg-book 테스트 초안");
@@ -136,6 +138,9 @@ export function BloggerDraftForm({
       )}
 
       <form ref={formRef} action={submitBloggerDraft} className="flex flex-col gap-4">
+        {generationId && (
+          <input type="hidden" name="generationId" value={generationId} />
+        )}
         {/* 블로그 선택 */}
         <label className="flex flex-col gap-1.5">
           <span className="text-[12px]" style={{ color: "var(--color-text-muted)" }}>블로그</span>
