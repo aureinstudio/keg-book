@@ -5,10 +5,13 @@
   "description": "KEG 출판 교재 바이럴·콘텐츠 마케팅 웹앱",
   "scripts": {
     "dev": "next dev --hostname 127.0.0.1 --port 3000",
+    "typecheck": "tsc --noEmit",
+    "prebuild": "npm run typecheck",
     "build": "next build",
     "preview": "npm run build && next start --hostname 127.0.0.1 --port 3000",
     "start": "next start --hostname 127.0.0.1 --port 3000",
-    "lint": "next lint"
+    "lint": "next lint",
+    "verify": "npm run typecheck && npm run lint"
   },
   "engines": {
     "node": ">=20"
