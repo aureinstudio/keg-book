@@ -10,6 +10,20 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
+  {
+    // 검사 대상에서 제외 — 빌드 산출물·외부 의존성·로컬 산출물
+    ignores: [
+      ".next/**",
+      "node_modules/**",
+      "dist/**",
+      "build/**",
+      "out/**",
+      "_output/**",
+      "_vendor/**",
+      "_template/**",
+      "next-env.d.ts",
+    ],
+  },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
 ];
 
