@@ -56,38 +56,57 @@ export function NaverExportPanel({
   const titleLen = title.length;
   const descLen = description.length;
 
-  // 본문에서 글자수·소제목·이미지 분석
+  // 본문 분석 — 1위 블로그(2026.3 천안웹디자인학원 후기) 역엔지니어링 기반
   const bodyText = bodyHtml.replace(/<[^>]+>/g, "");
   const bodyLen = bodyText.replace(/\s+/g, "").length;
   const h2Count = (bodyHtml.match(/<h2/gi) ?? []).length;
   const h3Count = (bodyHtml.match(/<h3/gi) ?? []).length;
   const imgCount = (bodyHtml.match(/<img/gi) ?? []).length;
 
+  // ── 1위 패턴 신호 (실측 기반)
+  const mainKeyword = tagList[0] ?? "";
+  const first200 = bodyText.slice(0, 200);
+
+  // 체크박스 ✔ 사용 횟수 (1위는 4곳 사용 — 모바일 스캔 친화)
+  const checkmarkCount = (bodyHtml.match(/✔/g) ?? []).length;
+
+  // 1인칭 경험 마커 (1위는 12+회)
+  const EXPERIENCE_RE = /저도|제가|저는|느꼈|느낌|돌이켜|직접|써본|솔직히|개인적으로/g;
+  const experienceCount = (bodyText.match(EXPERIENCE_RE) ?? []).length;
+
+  // 한국어 AI 어휘 (1위는 0회 — 가장 강력한 D.I.A.+ 원문성 신호)
+  const AI_KO_RE = /또한|따라서|결론적으로|궁극적으로|핵심적으로|뿐만\s*아니라|그러므로|즉,|한편,/g;
+  const aiKoCount = (bodyText.match(AI_KO_RE) ?? []).length;
+
+  // 상업어 (광고성 패널티)
+  const COMMERCIAL_RE = /할인|이벤트|무료\s*증정|특가|최저가|구매|쿠폰|적립/g;
+  const commercialCount = (bodyText.match(COMMERCIAL_RE) ?? []).length;
+
   const checks = [
     {
       label: `제목 (${titleLen}자)`,
-      ok: titleLen >= 15 && titleLen <= 30,
-      hint: "네이버 권장 25–30자 이내, 앞부분에 핵심 키워드",
+      ok: titleLen >= 25 && titleLen <= 38,
+      hint: "1위 사례 35자 — 25–38자 sweet spot (의문문/후기형)",
     },
     {
       label: `설명 (${descLen}자)`,
       ok: descLen >= 50 && descLen <= 100,
-      hint: "본문 리드 문장 — 50–100자",
+      hint: "검색결과 스니펫 — 50–100자, 본문 첫 문장과 동기화 권장",
     },
     {
       label: `본문 길이 (${bodyLen.toLocaleString()}자)`,
-      ok: bodyLen >= 1500,
-      hint: "1,500자 이상 필수 — 경쟁력은 2,000–3,000자",
+      ok: bodyLen >= 2000 && bodyLen <= 3500,
+      hint: "1위 사례 2,500자 — 2,000–3,500 sweet spot. 3,500 초과는 과잉",
     },
     {
       label: `소제목 H2/H3 (${h2Count + h3Count}개)`,
-      ok: h2Count + h3Count >= 3,
-      hint: "소제목 3개 이상 — 구조화된 글이 D.I.A. 점수 향상",
+      ok: h2Count + h3Count >= 5,
+      hint: "1위는 6개 시간순 narrative — [배경→현장→감정→디테일→결과→성찰]",
     },
     {
       label: `이미지 (${imgCount}장)`,
-      ok: imgCount >= 5,
-      hint: "직접 촬영 원본 5장 이상 — AI 생성 이미지 패널티 주의",
+      ok: imgCount >= 8,
+      hint: "1위는 11장 — AI 생성 이미지도 페널티 없음 (실측 확인)",
     },
     {
       label: `태그 (${tagList.length}개)`,
@@ -99,7 +118,56 @@ export function NaverExportPanel({
       ok: tagList.length > 0 && tagList.some((t) => title.includes(t)),
       hint: "대표 키워드가 제목 앞부분에 있으면 C-Rank·D.I.A. 모두 유리",
     },
+    {
+      label: "첫 200자에 주 키워드 포함",
+      ok: Boolean(mainKeyword) && first200.includes(mainKeyword),
+      hint: "1위 패턴: 첫 문장 = 검색어 의문문 (\"❓ ... 가능할까요?\")",
+    },
+    {
+      label: `체크박스 ✔ 사용 (${checkmarkCount}곳)`,
+      ok: checkmarkCount >= 3,
+      hint: "1위는 본문 4곳에 ✔ 리스트 — 모바일 스캔 친화, 체류시간↑",
+    },
+    {
+      label: `1인칭 경험 마커 (${experienceCount}회)`,
+      ok: experienceCount >= 8,
+      hint: "저도/제가/느꼈/직접 등 — D.I.A.+ 원문성 가점 (1위 12+회)",
+    },
+    {
+      label: `한국어 AI 어휘 회피 (${aiKoCount}회)`,
+      ok: aiKoCount === 0,
+      hint: "또한·따라서·결론적으로·궁극적으로 → 1위는 0회. 자연 구어로",
+    },
+    {
+      label: `상업어 회피 (${commercialCount}회)`,
+      ok: commercialCount === 0,
+      hint: "할인/이벤트/무료증정/특가 → 광고성 패널티. CTA는 \"확인해보세요\" 우회",
+    },
+    {
+      label: "첫 문장 ❓ 의문형 후킹",
+      ok: /^[\s<>p\/]*[❓?]|^[\s<>p\/]*[^<>]{5,40}[?]/.test(bodyText.trim()),
+      hint: "1위 첫 문장: \"❓ 비전공자인데 ... 가능할까요?\" — 모바일 첫 화면 클릭률↑",
+    },
+    {
+      label: "리스트 구조 (ul/ol/✔)",
+      ok: /<ul|<ol/i.test(bodyHtml) || checkmarkCount >= 3,
+      hint: "스캔 가능 구조 1개 이상 — 단락 사이 시각적 break",
+    },
+    {
+      label: "외부 링크 절제",
+      ok: (bodyHtml.match(/<a\s+[^>]*href=["']https?/gi) ?? []).length <= Math.max(1, Math.floor(bodyLen / 500)),
+      hint: "500자당 1개 이하 — 외부 링크 과다는 광고성 판정",
+    },
   ];
+
+  // ── 종합 점수 (0–100)
+  const passCount = checks.filter((c) => c.ok).length;
+  const seoScore = Math.round((passCount / checks.length) * 100);
+  const scoreTier =
+    seoScore >= 85 ? { label: "1위 후보", color: "#15803d" }
+    : seoScore >= 65 ? { label: "상위권", color: "#525252" }
+    : seoScore >= 40 ? { label: "보완 필요", color: "#a16207" }
+    : { label: "재작성 권장", color: "#991b1b" };
 
   async function copyExport() {
     try {
@@ -149,9 +217,22 @@ export function NaverExportPanel({
             border: "1px solid var(--color-border)",
           }}
         >
-          <p className="mb-2 text-[11px] font-medium uppercase tracking-wider" style={{ color: "var(--color-text-faint)" }}>
-            SEO 점검
-          </p>
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-[11px] font-medium uppercase tracking-wider" style={{ color: "var(--color-text-faint)" }}>
+              SEO 점검 · 1위 패턴 기준
+            </p>
+            <span
+              className="rounded-full px-2 py-0.5 text-[11px] font-medium tabular-nums"
+              style={{
+                backgroundColor: `${scoreTier.color}15`,
+                color: scoreTier.color,
+                border: `1px solid ${scoreTier.color}40`,
+              }}
+              aria-label={`SEO 점수 ${seoScore}점, ${scoreTier.label}`}
+            >
+              {seoScore}점 · {scoreTier.label}
+            </span>
+          </div>
           <ul className="space-y-1.5">
             {checks.map((c, i) => (
               <li key={i} className="flex items-start gap-2 text-[12px]">
