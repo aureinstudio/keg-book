@@ -98,4 +98,5 @@ description: >-
 
 ## 추가 참고
 
-[references/on-page.md](references/on-page.md) — 체크리스트·예시 슬러그.
+- [references/on-page.md](references/on-page.md) — 체크리스트·예시 슬러그.
+- [references/naver-1st-rank-pattern.md](references/naver-1st-rank-pattern.md) — 네이버 1위 글 실측 패턴(2026.5 기준): 6가지 작성 규칙, 한국어 AI 어휘 블랙리스트, KEG 교재 적용 예시. `NaverExportPanel` SEO 점수 + Claude 프롬프트의 근거 문서.
