@@ -12,6 +12,7 @@
 | `newsletter/` | 메일리용 Markdown/HTML·제목 라인 |
 | `social-instagram/` | 인스타 캡션·캐러셀 문안·해시태그 블록 |
 | `social-threads/` | Threads 스레드 분할 텍스트 |
+| `social-linkedin/` | LinkedIn 단일 포스트 (첫 줄 훅 + 단락 + 해시태그 3–5개) |
 | `card-news/` | Gemini 생성 이미지·프롬프트 로그·슬라이드 순서 메모 |
 | `shared/` | 채널 공통 원고·브리프·보내기 JSON 등 |
 

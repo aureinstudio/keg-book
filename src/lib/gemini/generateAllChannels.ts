@@ -33,6 +33,11 @@ export type ChannelContent = {
   threads: {
     text: string;
   };
+  linkedin: {
+    /** LinkedIn 단일 포스트 본문 (1,200–1,500자 권장, 첫 줄 = 훅) */
+    text: string;
+    hashtags: string[];
+  };
   cardNews?: CardNewsContent;
   /**
    * 채널별 생성 실패 사유. 부분 성공 시 실패 채널만 키로 표시되고
@@ -41,7 +46,13 @@ export type ChannelContent = {
    */
   _errors?: Partial<
     Record<
-      "blogger" | "naver" | "newsletter" | "instagram" | "threads" | "cardNews",
+      | "blogger"
+      | "naver"
+      | "newsletter"
+      | "instagram"
+      | "threads"
+      | "linkedin"
+      | "cardNews",
       string
     >
   >;
@@ -121,7 +132,7 @@ async function withRetry<T>(
 // 채널별 placeholder — 부분 실패 시 이 값으로 채운다.
 const PLACEHOLDER: Pick<
   ChannelContent,
-  "blogger" | "naver" | "newsletter" | "instagram" | "threads"
+  "blogger" | "naver" | "newsletter" | "instagram" | "threads" | "linkedin"
 > = {
   blogger: {
     title: "(생성 실패)",
@@ -142,6 +153,7 @@ const PLACEHOLDER: Pick<
   },
   instagram: { caption: "(생성 실패)", hashtags: [] },
   threads: { text: "(생성 실패)" },
+  linkedin: { text: "(생성 실패)", hashtags: [] },
 };
 
 // 블로거 + 네이버: Claude (장문 고품질)
@@ -190,7 +202,9 @@ ${NAVER_RULES}
 // 소셜 + 뉴스레터: Gemini Flash (속도 우선)
 async function generateShortForm(
   p: GenerateAllChannelsParams,
-): Promise<Pick<ChannelContent, "newsletter" | "instagram" | "threads">> {
+): Promise<
+  Pick<ChannelContent, "newsletter" | "instagram" | "threads" | "linkedin">
+> {
   const ai = new GoogleGenAI({ apiKey: p.apiKey });
   const meta = buildMeta(p);
 
@@ -213,6 +227,10 @@ ${meta}
   },
   "threads": {
     "text": "Threads 글 (100~200자, 이모지 포함, 자연스러운 짧은 글)"
+  },
+  "linkedin": {
+    "text": "LinkedIn 단일 포스트 (1,200~1,500자). 첫 줄은 140자 이내 훅 (\\\"더보기\\\" 컷오프 대응). 단락은 \\\\n\\\\n 두 번 줄바꿈으로 구분. 전문가/교육 톤, 이모지 1~2개만 절제 사용. 본문 마지막에 1줄 우회 CTA.",
+    "hashtags": ["해시태그1", "해시태그2 (# 없이 단어만, 3~5개)"]
   }
 }`;
 
@@ -228,7 +246,10 @@ ${meta}
 
   const raw = response.text?.trim() ?? "";
   const parsed = JSON.parse(stripCodeBlock(raw));
-  return parsed as Pick<ChannelContent, "newsletter" | "instagram" | "threads">;
+  return parsed as Pick<
+    ChannelContent,
+    "newsletter" | "instagram" | "threads" | "linkedin"
+  >;
 }
 
 export async function generateAllChannels(
@@ -271,7 +292,8 @@ ${NAVER_RULES}
   "naver": { "title": "네이버 제목 25~38자 (의문/후기형)", "content_html": "본문 2,200~2,800자, 위 [네이버 본문 작성 규칙] 6가지 준수. 첫 문장 ❓ 의문문, <h2> 5~6개 시간순, ✔ 체크박스 3~4곳, 1인칭 마커 8회+", "description": "요약 50~100자", "tags": ["태그"] },
   "newsletter": { "subject": "이메일 제목", "preheader": "프리헤더", "body_html": "뉴스레터 본문" },
   "instagram": { "caption": "캡션 (이모지 포함)", "hashtags": ["#태그"] },
-  "threads": { "text": "Threads 글" }
+  "threads": { "text": "Threads 글" },
+  "linkedin": { "text": "LinkedIn 포스트 1,200~1,500자, 첫 줄 140자 이내 훅, 단락 사이 \\\\n\\\\n", "hashtags": ["3~5개 단어만 (# 없이)"] }
 }`;
 
     const textPromise = withRetry(async () => {
@@ -304,6 +326,7 @@ ${NAVER_RULES}
       _errors.newsletter = msg;
       _errors.instagram = msg;
       _errors.threads = msg;
+      _errors.linkedin = msg;
     }
 
     const cardNewsValue =
@@ -349,8 +372,11 @@ ${NAVER_RULES}
     _errors.naver = msg;
   }
 
-  // shortForm 결과 처리 (newsletter + instagram + threads)
-  let shortForm: Pick<ChannelContent, "newsletter" | "instagram" | "threads">;
+  // shortForm 결과 처리 (newsletter + instagram + threads + linkedin)
+  let shortForm: Pick<
+    ChannelContent,
+    "newsletter" | "instagram" | "threads" | "linkedin"
+  >;
   if (shortResult.status === "fulfilled") {
     shortForm = shortResult.value;
   } else {
@@ -363,10 +389,12 @@ ${NAVER_RULES}
       newsletter: PLACEHOLDER.newsletter,
       instagram: PLACEHOLDER.instagram,
       threads: PLACEHOLDER.threads,
+      linkedin: PLACEHOLDER.linkedin,
     };
     _errors.newsletter = msg;
     _errors.instagram = msg;
     _errors.threads = msg;
+    _errors.linkedin = msg;
   }
 
   // cardNews 결과 처리

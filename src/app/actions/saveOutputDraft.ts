@@ -13,6 +13,7 @@ const ALLOWED: OutputSubfolder[] = [
   "newsletter",
   "social-instagram",
   "social-threads",
+  "social-linkedin",
   "card-news",
   "shared",
 ];

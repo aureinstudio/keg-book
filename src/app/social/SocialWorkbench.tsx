@@ -3,7 +3,12 @@
 import { saveOutputDraftAction } from "@/app/actions/saveOutputDraft";
 import { submitBufferQueue } from "@/app/social/actions";
 import type { BufferChannelLite } from "@/lib/buffer/listBufferChannels";
-import { buildSocialPack } from "@/lib/social/buildSocialPack";
+import {
+  buildSocialPack,
+  detectService,
+  SOCIAL_LIMITS,
+  type SocialService,
+} from "@/lib/social/buildSocialPack";
 import { useEffect, useMemo, useState, useTransition } from "react";
 
 function rangeColor(len: number, min: number, max: number) {
@@ -104,9 +109,7 @@ export function SocialWorkbench({
     },
   ];
 
-  useEffect(() => {
-    setQueueText(captionWithTags);
-  }, [captionWithTags]);
+  // queueText 자동 동기화는 채널 종류에 따라 아래의 selectedService useEffect 가 처리.
 
   async function copyText(label: string, text: string) {
     try {
@@ -119,14 +122,22 @@ export function SocialWorkbench({
     }
   }
 
-  function savePack(kind: "instagram" | "threads") {
+  function savePack(kind: "instagram" | "threads" | "linkedin") {
     startTransition(async () => {
       setSaveMsg(null);
-      const sub = kind === "instagram" ? "social-instagram" : "social-threads";
-      const content =
+      const sub =
         kind === "instagram"
-          ? pack.instagramCaption
-          : pack.threadsPosts.map((p, i) => `--- ${i + 1} ---\n${p}`).join("\n\n");
+          ? "social-instagram"
+          : kind === "threads"
+          ? "social-threads"
+          : "social-linkedin";
+      let content: string;
+      if (kind === "instagram") content = pack.instagramCaption;
+      else if (kind === "threads")
+        content = pack.threadsPosts
+          .map((p, i) => `--- ${i + 1} ---\n${p}`)
+          .join("\n\n");
+      else content = pack.linkedinPost;
       const r = await saveOutputDraftAction({
         subfolder: sub,
         base: title.slice(0, 40),
@@ -148,15 +159,32 @@ export function SocialWorkbench({
   const selectedChannel = postableChannels.find(
     (c) => c.id === selectedChannelId,
   );
-  // descriptor에 "instagram" 포함 시 인스타로 간주 (Buffer는 보통 @handle 형태)
-  const isInstagramSelected =
-    !!selectedChannel &&
-    (/instagram/i.test(selectedChannel.descriptor ?? "") ||
-      /instagram/i.test(selectedChannel.name ?? ""));
+  // 채널 종류 감지 (instagram / threads / linkedin / twitter / facebook / unknown)
+  const selectedService: SocialService | "unknown" = selectedChannel
+    ? detectService(selectedChannel.descriptor ?? "", selectedChannel.name ?? "")
+    : "unknown";
+  const isInstagramSelected = selectedService === "instagram";
+
+  // 선택된 채널의 글자수/해시태그 한도
+  const limits =
+    selectedService !== "unknown" ? SOCIAL_LIMITS[selectedService] : null;
+  const queueLen = queueText.length;
+  const queueTagCount = (queueText.match(/#\w/g) ?? []).length;
+  const queueOverMax = limits ? queueLen > limits.max : false;
+  const queueOverRecommended = limits ? queueLen > limits.recommended : false;
 
   // 캐러셀 첨부 가능 + 인스타 선택 시 기본 ON
   const canAttachCarousel = carouselAvailable && isInstagramSelected;
   const [attachCarousel, setAttachCarousel] = useState<boolean>(true);
+
+  // 채널 선택 시 본문을 해당 채널 형식으로 자동 채움 (사용자 수정 전까지만)
+  const [queueTouched, setQueueTouched] = useState(false);
+  useEffect(() => {
+    if (queueTouched) return;
+    if (selectedService === "linkedin") setQueueText(pack.linkedinPost);
+    else if (selectedService === "threads") setQueueText(pack.threadsPosts[0] ?? captionWithTags);
+    else setQueueText(captionWithTags);
+  }, [selectedService, pack.linkedinPost, pack.threadsPosts, captionWithTags, queueTouched]);
 
   return (
     <div className="flex flex-col gap-5">
@@ -413,6 +441,72 @@ export function SocialWorkbench({
         </button>
       </section>
 
+      {/* LinkedIn */}
+      <section
+        className="rounded-xl p-4"
+        style={{ backgroundColor: "var(--color-surface)", border: "1px solid var(--color-border)" }}
+      >
+        <div className="mb-3 flex items-center gap-2">
+          <span
+            className="flex h-5 w-5 items-center justify-center rounded text-[10px] font-bold text-white"
+            style={{ backgroundColor: "#0A66C2" }}
+            aria-hidden="true"
+          >
+            in
+          </span>
+          <h2 className="text-sm font-semibold" style={{ color: "var(--color-text)" }}>
+            LinkedIn 포스트
+          </h2>
+          <span className="text-xs" style={{ color: "var(--color-text-faint)" }}>
+            첫 줄 훅 + 단락 + 해시태그 3–5
+          </span>
+          <span
+            className="ml-auto text-[11px] tabular-nums font-medium"
+            style={{ color: rangeColor(pack.linkedinPost.length, 800, SOCIAL_LIMITS.linkedin.recommended) }}
+          >
+            {pack.linkedinPost.length} / {SOCIAL_LIMITS.linkedin.recommended}
+          </span>
+        </div>
+        <textarea
+          readOnly
+          value={pack.linkedinPost}
+          rows={10}
+          aria-label="생성된 LinkedIn 포스트"
+          className="w-full rounded-lg px-3 py-2 font-mono text-xs"
+          style={{
+            border: "1px solid var(--color-border)",
+            backgroundColor: "var(--color-surface-2)",
+            color: "var(--color-text-muted)",
+          }}
+        />
+        <p className="mt-2 text-[11px]" style={{ color: "var(--color-text-faint)" }}>
+          모바일 “더보기” 컷오프는 ~210자, 데스크톱 ~140자입니다. 첫 줄을 훅으로 작성하세요.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => void copyText("LinkedIn 포스트", pack.linkedinPost)}
+            className="rounded-lg px-3 py-1.5 text-sm font-medium text-white transition-colors hover:opacity-90"
+            style={{ backgroundColor: "#0A66C2" }}
+          >
+            LinkedIn 복사
+          </button>
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => savePack("linkedin")}
+            className="rounded-lg px-3 py-1.5 text-sm transition-colors disabled:opacity-50"
+            style={{
+              border: "1px solid var(--color-border)",
+              color: "var(--color-text-muted)",
+              backgroundColor: "transparent",
+            }}
+          >
+            _output/social-linkedin 저장
+          </button>
+        </div>
+      </section>
+
       {/* Buffer */}
       <section
         className="rounded-xl p-4"
@@ -458,7 +552,7 @@ export function SocialWorkbench({
         )}
         {bufferTokenConfigured && !bufferListError && postableChannels.length === 0 && (
           <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>
-            연결된 채널 없음. Buffer에서 인스타·Threads를 연결하세요.
+            연결된 채널 없음. Buffer에서 인스타·Threads·LinkedIn 등을 연결하세요.
           </p>
         )}
         {postableChannels.length > 0 && (
@@ -550,15 +644,39 @@ export function SocialWorkbench({
               <textarea
                 name="text"
                 value={queueText}
-                onChange={(e) => setQueueText(e.target.value)}
-                rows={5}
+                onChange={(e) => {
+                  setQueueText(e.target.value);
+                  setQueueTouched(true);
+                }}
+                rows={selectedService === "linkedin" ? 12 : 5}
                 className="rounded-lg px-3 py-2 font-mono text-xs"
                 style={{
-                  border: "1px solid var(--color-border)",
+                  border: `1px solid ${queueOverMax ? "#991b1b" : "var(--color-border)"}`,
                   backgroundColor: "var(--color-surface-2)",
                   color: "var(--color-text)",
                 }}
               />
+              {limits && (
+                <div
+                  className="flex items-center justify-between text-[11px] tabular-nums"
+                  style={{
+                    color: queueOverMax
+                      ? "#991b1b"
+                      : queueOverRecommended
+                      ? "#a16207"
+                      : "var(--color-text-faint)",
+                  }}
+                >
+                  <span>
+                    {selectedService} · 권장 {limits.recommended.toLocaleString()}자 / 최대{" "}
+                    {limits.max.toLocaleString()}자
+                  </span>
+                  <span>
+                    {queueLen.toLocaleString()} / {limits.max.toLocaleString()} · 해시태그{" "}
+                    {queueTagCount}개 (권장 {limits.hashtags.min}–{limits.hashtags.max})
+                  </span>
+                </div>
+              )}
             </label>
             <button
               type="submit"
