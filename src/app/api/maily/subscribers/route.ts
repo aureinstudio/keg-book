@@ -1,10 +1,21 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { auth } from "@/auth";
 import { getMailyConfig, mailySubscribersUrl } from "@/lib/maily/mailyClient";
 
 export const dynamic = "force-dynamic";
 
+async function requireAuth() {
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  return null;
+}
+
 export async function GET(request: NextRequest) {
+  const denied = await requireAuth();
+  if (denied) return denied;
   const { apiKey } = getMailyConfig();
   if (!apiKey) {
     return NextResponse.json(
@@ -26,6 +37,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const denied = await requireAuth();
+  if (denied) return denied;
   const { apiKey } = getMailyConfig();
   if (!apiKey) {
     return NextResponse.json(

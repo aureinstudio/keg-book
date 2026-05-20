@@ -1,5 +1,6 @@
 "use server";
 
+import { auth } from "@/auth";
 import {
   sanitizeFilenameBase,
   writeOutputTextFile,
@@ -29,6 +30,10 @@ export async function saveOutputDraftAction(input: {
   content: string;
 }): Promise<SaveOutputDraftResult> {
   try {
+    const session = await auth();
+    if (!session?.user) {
+      return { ok: false, error: "로그인이 필요합니다." };
+    }
     if (!ALLOWED.includes(input.subfolder)) {
       return { ok: false, error: "허용되지 않은 폴더입니다." };
     }

@@ -4,28 +4,26 @@ import Google from "next-auth/providers/google";
 const DEV_ONLY_AUTH_SECRET =
   "keg-book-dev-only-auth-secret-not-for-production";
 
-let warnedMissingAuthSecret = false;
-
 /**
- * 공개 배포 전에는 `AUTH_SECRET`(또는 `NEXTAUTH_SECRET`) 설정을 권장.
- * 비어 있으면 Auth.js `MissingSecret`·500을 피하기 위해 개발용 기본 시크릿으로 채운다.
- * `NODE_ENV === "production"` 이고 비어 있을 때만 서버 로그에 한 번 경고한다.
+ * AUTH_SECRET 해석 정책:
+ * - production: 비어있으면 throw — fail-secure (session hijack 방지).
+ * - test/CI: AUTH_SECRET 또는 NEXTAUTH_SECRET 이 있으면 사용, 없으면 throw.
+ * - development: 비어있을 때만 DEV_ONLY_AUTH_SECRET 으로 동작 + 로그 경고.
  */
 function resolveAuthSecret(): string {
   const fromEnv =
     (process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET ?? "").trim();
   if (fromEnv) return fromEnv;
 
-  if (process.env.NODE_ENV === "development") {
-    return DEV_ONLY_AUTH_SECRET;
-  }
-
-  if (!warnedMissingAuthSecret) {
-    warnedMissingAuthSecret = true;
-    console.error(
-      "[auth] AUTH_SECRET / NEXTAUTH_SECRET 이 비어 있습니다. 공개 서비스 전에는 반드시 설정하세요. 지금은 개발용 기본 시크릿으로 동작합니다.",
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "[auth] AUTH_SECRET (또는 NEXTAUTH_SECRET) 이 production 환경에 설정되어 있지 않습니다. 빌드/배포를 중단합니다.",
     );
   }
+
+  console.warn(
+    "[auth] AUTH_SECRET 미설정 — 개발용 임시 시크릿 사용 중. 배포 전 반드시 .env 에 설정하세요.",
+  );
   return DEV_ONLY_AUTH_SECRET;
 }
 
