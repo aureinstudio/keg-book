@@ -2,7 +2,7 @@
 
 > **Inherits:** [../CLAUDE.md](../CLAUDE.md) — **S.G.G Integrated Framework** (KEG 루트 마스터 · Claude Code 공식 스펙 2026-05 기준)  
 > **Scope:** `./` — 이 저장소 `keg-book/` 루트만. 상위 `../`는 **읽기·수정 금지**(마스터 §4-1).  
-> **Stack:** **Next.js(App Router) + TypeScript + better-sqlite3**(발행 큐 `data/keg-book.sqlite`) — 결정 근거·MVP 슬라이스는 [`docs/mvp-stack-boundary.md`](docs/mvp-stack-boundary.md). `src/app`·`lib` 구조는 동 문서·`docs/DIRECTORY.md` 참고.
+> **Stack:** **Next.js(App Router) + TypeScript + Supabase(PostgreSQL)**(발행 큐 `publish_jobs` 테이블, Storage `_output/`) — 결정 근거·MVP 슬라이스는 [`docs/mvp-stack-boundary.md`](docs/mvp-stack-boundary.md). `src/app`·`lib` 구조는 동 문서·`docs/DIRECTORY.md` 참고. Supabase 스키마: [`docs/MIGRATIONS.sql`](docs/MIGRATIONS.sql).
 
 마스터의 **필로소피·모드(A/B/C)·메모리 위계·Git·효율 필터·응답 프로토콜·MCP/훅**을 기본으로 따른다. 상세 표·예시는 **`../CLAUDE.md`를 연다.** 아래는 **keg-book 전용** 보강이다.
 
@@ -100,7 +100,7 @@
 │   ├── lib/
 │   │   ├── blogger/            # listBlogs, createDraftPost
 │   │   ├── buffer/             # GraphQL 클라이언트
-│   │   ├── db/                 # better-sqlite3 발행 큐 (publishQueue.ts)
+│   │   ├── db/                 # Supabase 클라이언트 + 발행 큐 (publishQueue.ts, generations.ts, storage.ts)
 │   │   ├── gemini/             # 카드뉴스 이미지
 │   │   ├── maily/              # 메일리 API 클라이언트
 │   │   ├── newsletter/         # 뉴스레터 HTML
@@ -109,13 +109,12 @@
 │   │   ├── social/             # buildSocialPack
 │   │   └── marketing/          # 서브에이전트 레지스트리
 │   └── types/                  # next-auth.d.ts, css.d.ts
-├── data/                       # SQLite DB (keg-book.sqlite, .gitignore 대상)
-├── tests/.gitkeep
+├── tests/                      # vitest 유닛 테스트 (naver export, output sanitize 등)
 ├── CLAUDE.md
 └── README.md
 ```
 
-**구현 완료(P0~P5):** UI·복사·`_output/` 저장·Buffer(토큰)·Gemini(키)·발행 큐(SQLite)·메일리 API 라우트. **미구현:** 인증 미들웨어(`middleware.ts`) — 서버 액션·API 라우트 인증 가드 미적용(로컬 전용 도구로 운용 중). 스캐폴딩 변경 시 `docs/DIRECTORY.md`·본 절 갱신.
+**구현 완료(P0~P5):** UI·복사·`_output/` 저장(Supabase Storage + 로컬 fallback)·Buffer(토큰)·Gemini(키)·발행 큐(Supabase `publish_jobs`)·메일리 API 라우트·**인증 미들웨어**(`src/middleware.ts` — 공개 라우트 화이트리스트 외 전부 `auth()` 게이트). 스캐폴딩 변경 시 `docs/DIRECTORY.md`·본 절 갱신.
 
 ---
 
