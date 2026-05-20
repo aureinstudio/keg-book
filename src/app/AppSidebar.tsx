@@ -6,11 +6,23 @@ import type { ReactNode } from "react";
 import { ThemeToggle } from "./ThemeToggle";
 import { BrandLogo } from "./BrandLogo";
 
+type NavChild = {
+  /** /social#instagram 같은 앵커 또는 별도 경로 */
+  href: string;
+  label: string;
+  /** 표시용 단문자 아이콘 */
+  icon: string;
+  /** 채널 브랜드 컬러 */
+  color: string;
+};
+
 type NavItem = {
   href: string;
   label: string;
   icon: string;
   color: string;
+  /** 하위 항목 — 부모 라우트가 활성일 때만 펼쳐서 보임 */
+  children?: NavChild[];
 };
 
 type NavSection = {
@@ -29,11 +41,21 @@ const navSections: NavSection[] = [
   {
     label: "채널",
     items: [
-      { href: "/blogger",       label: "Blogger",  icon: "B", color: "#262626" },
-      { href: "/naver",         label: "네이버",   icon: "N", color: "#525252" },
-      { href: "/social",        label: "소셜",     icon: "S", color: "#404040" },
-      { href: "/newsletter",    label: "뉴스레터", icon: "M", color: "#525252" },
-      { href: "/card-news",     label: "카드뉴스", icon: "C", color: "#737373" },
+      { href: "/blogger",    label: "Blogger",  icon: "B", color: "#262626" },
+      { href: "/naver",      label: "네이버",   icon: "N", color: "#525252" },
+      {
+        href: "/social",
+        label: "소셜",
+        icon: "S",
+        color: "#404040",
+        children: [
+          { href: "/social#instagram", label: "Instagram", icon: "I", color: "#E1306C" },
+          { href: "/social#threads",   label: "Threads",   icon: "T", color: "#000000" },
+          { href: "/social#linkedin",  label: "LinkedIn",  icon: "in", color: "#0A66C2" },
+        ],
+      },
+      { href: "/newsletter", label: "뉴스레터", icon: "M", color: "#525252" },
+      { href: "/card-news",  label: "카드뉴스", icon: "C", color: "#737373" },
     ],
   },
   {
@@ -155,6 +177,45 @@ export function AppSidebar({ userBadge }: { userBadge?: ReactNode }) {
                         />
                       )}
                     </Link>
+
+                    {/* 하위 항목 — 부모 라우트가 활성일 때만 펼침 */}
+                    {item.children && isActive && (
+                      <ul className="mt-0.5 ml-4 space-y-0.5 border-l pl-2"
+                          style={{ borderColor: "var(--color-sidebar-border)" }}>
+                        {item.children.map((child) => (
+                          <li key={child.href}>
+                            <Link
+                              href={child.href}
+                              className="group flex h-7 items-center gap-2 rounded-full px-2 text-[12px] transition-colors duration-150"
+                              style={{
+                                color: "var(--color-sidebar-text)",
+                              }}
+                              onMouseEnter={(e) => {
+                                (e.currentTarget as HTMLElement).style.backgroundColor =
+                                  "var(--color-sidebar-hover)";
+                                (e.currentTarget as HTMLElement).style.color =
+                                  "var(--color-sidebar-text-active)";
+                              }}
+                              onMouseLeave={(e) => {
+                                (e.currentTarget as HTMLElement).style.backgroundColor =
+                                  "transparent";
+                                (e.currentTarget as HTMLElement).style.color =
+                                  "var(--color-sidebar-text)";
+                              }}
+                            >
+                              <span
+                                className="flex h-[14px] w-[14px] shrink-0 items-center justify-center rounded-[3px] text-[8px] font-bold text-white"
+                                style={{ backgroundColor: child.color }}
+                                aria-hidden="true"
+                              >
+                                {child.icon}
+                              </span>
+                              <span className="truncate">{child.label}</span>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </li>
                 );
               })}

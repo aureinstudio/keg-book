@@ -111,6 +111,21 @@ export function SocialWorkbench({
 
   // queueText 자동 동기화는 채널 종류에 따라 아래의 selectedService useEffect 가 처리.
 
+  // 사이드바 앵커 (/social#instagram 등) 진입 시 해당 섹션으로 스크롤.
+  // <main overflow-y-auto> 가 스크롤 컨테이너라 브라우저 기본 hash 점프가
+  // 동작하지 않아 수동으로 scrollIntoView 한다.
+  useEffect(() => {
+    function scrollToHash() {
+      const hash = window.location.hash.replace("#", "");
+      if (!hash) return;
+      const el = document.getElementById(hash);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    scrollToHash();
+    window.addEventListener("hashchange", scrollToHash);
+    return () => window.removeEventListener("hashchange", scrollToHash);
+  }, []);
+
   async function copyText(label: string, text: string) {
     try {
       await navigator.clipboard.writeText(text);
@@ -315,7 +330,8 @@ export function SocialWorkbench({
 
       {/* 인스타그램 */}
       <section
-        className="rounded-xl p-4"
+        id="instagram"
+        className="scroll-mt-20 rounded-xl p-4"
         style={{ backgroundColor: "var(--color-surface)", border: "1px solid var(--color-border)" }}
       >
         <div className="mb-3 flex items-center gap-2">
@@ -377,7 +393,8 @@ export function SocialWorkbench({
 
       {/* Threads */}
       <section
-        className="rounded-xl p-4"
+        id="threads"
+        className="scroll-mt-20 rounded-xl p-4"
         style={{ backgroundColor: "var(--color-surface)", border: "1px solid var(--color-border)" }}
       >
         <div className="mb-3 flex items-center gap-2">
@@ -443,7 +460,8 @@ export function SocialWorkbench({
 
       {/* LinkedIn */}
       <section
-        className="rounded-xl p-4"
+        id="linkedin"
+        className="scroll-mt-20 rounded-xl p-4"
         style={{ backgroundColor: "var(--color-surface)", border: "1px solid var(--color-border)" }}
       >
         <div className="mb-3 flex items-center gap-2">
