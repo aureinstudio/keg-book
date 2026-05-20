@@ -21,9 +21,10 @@ export async function generateContentAction(formData: FormData): Promise<Generat
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
+    console.warn("[generate] GEMINI_API_KEY missing");
     return {
       ok: false,
-      error: "GEMINI_API_KEY가 설정되지 않았습니다. .env 파일을 확인하세요.",
+      error: "콘텐츠 생성기 연동이 구성되지 않았습니다. 관리자에게 문의해 주세요.",
     };
   }
 

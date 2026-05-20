@@ -47,6 +47,27 @@ export default async function NaverAssistPage({
 
       <PrefillFromGeneration channel="naver" basePath="/naver" fromId={fromId} />
 
+      {/* ⚠️ 약관·계정 리스크 경고 — 네이버는 공식 글쓰기 API가 종료되었고,
+          자동 등록 도구는 약관 위반·계정 정지 위험이 있다. 본 페이지는
+          HTML 생성·복사 보조까지만 수행하며, 게시는 반드시 본인 계정에서 수동으로. */}
+      <div
+        role="note"
+        aria-label="네이버 블로그 자동화 리스크 안내"
+        className="mb-4 rounded-lg p-3 text-[12px]"
+        style={{
+          backgroundColor: "rgba(234,179,8,0.08)",
+          border: "1px solid rgba(234,179,8,0.4)",
+          color: "#854d0e",
+        }}
+      >
+        <strong className="font-medium">⚠️ 약관·계정 리스크 안내</strong>
+        <span className="ml-1">
+          네이버 블로그 글쓰기 공식 API는 종료되었습니다. 외부 자동 등록은
+          약관 위반·계정 제재 위험이 있으므로, 이 페이지는 <em>HTML 생성·복사 보조</em>까지만
+          제공합니다. 실제 게시는 <strong>본인 계정에서 직접 수동</strong>으로 진행해 주세요.
+        </span>
+      </div>
+
       <div className="flex flex-col gap-4">
         <div style={{ backgroundColor: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: "12px", padding: "20px" }}>
           <NaverExportPanel

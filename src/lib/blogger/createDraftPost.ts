@@ -45,8 +45,17 @@ export async function createDraftPost(params: {
   });
 
   if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`posts.insert ${res.status}: ${text.slice(0, 240)}`);
+    const text = await res.text().catch(() => "");
+    // 응답 본문은 서버 로그에만 남기고, 호출자 에러에는 status code만 노출한다.
+    // (응답에 OAuth 토큰 echo, 내부 API 경로 등이 포함될 수 있어 사용자 메시지로는 부적합.)
+    console.error("[blogger] posts.insert failed", { status: res.status, body: text.slice(0, 500) });
+    if (res.status === 401 || res.status === 403) {
+      throw new Error("Google 인증이 만료되었거나 권한이 없습니다.");
+    }
+    if (res.status === 429) {
+      throw new Error("Blogger API 호출 한도 초과. 잠시 후 다시 시도해 주세요.");
+    }
+    throw new Error(`Blogger 초안 저장 실패 (status=${res.status}).`);
   }
 
   const data = (await res.json()) as { id?: string; url?: string };

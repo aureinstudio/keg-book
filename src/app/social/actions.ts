@@ -16,7 +16,7 @@ import { redirect } from "next/navigation";
 function humanizeBufferError(raw: string): string {
   const s = raw.toLowerCase();
   if (/401|unauthor|invalid token|token expired|forbidden/.test(s)) {
-    return "Buffer 토큰이 만료되었거나 권한이 없습니다. Buffer Publish 설정에서 API 토큰을 재발급해 BUFFER_API_ACCESS_TOKEN 을 갱신해 주세요.";
+    return "Buffer 토큰이 만료되었거나 권한이 없습니다. Buffer Publish 설정에서 API 토큰을 재발급해 환경설정을 갱신해 주세요.";
   }
   if (/channel.*(disconnected|not.?found|locked)/.test(s)) {
     return "선택한 채널이 연결 해제되었거나 잠겨 있습니다. Buffer 대시보드에서 채널을 다시 연결한 뒤 시도해 주세요.";
@@ -41,9 +41,11 @@ function socialRedirect(params: Record<string, string | undefined>): never {
 export async function submitBufferQueue(formData: FormData) {
   const token = process.env.BUFFER_API_ACCESS_TOKEN?.trim();
   if (!token) {
+    // 환경변수 이름을 사용자 메시지에 노출하지 않는다(공격자에 힌트 제공 방지).
+    console.warn("[social] BUFFER_API_ACCESS_TOKEN missing");
     socialRedirect({
       bf: "err",
-      msg: "BUFFER_API_ACCESS_TOKEN이 설정되어 있지 않습니다.",
+      msg: "Buffer 연동이 구성되지 않았습니다. 관리자에게 문의해 주세요.",
     });
   }
   const channelId = String(formData.get("channelId") ?? "").trim();
