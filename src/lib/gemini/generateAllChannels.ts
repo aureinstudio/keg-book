@@ -95,6 +95,39 @@ const NAVER_RULES = `[네이버 본문 작성 규칙 — 실측 1위 글 패턴]
    - 클릭베이트 단정: "최고, 유일, 필수, 무조건"
    - CTA는 "확인해보셔도 좋을 것 같습니다 :)" 같은 우회·정보 안내형.`;
 
+/**
+ * Blogger(Google 검색) 본문 작성 규칙 — Google E-E-A-T(Experience·Expertise·
+ * Authoritativeness·Trustworthiness) + Helpful Content System 가이드 기반.
+ * 네이버 D.I.A.+ 와 공통 신호(1인칭 경험·구조화·AI 어휘 회피)는 유지하되,
+ * 차이점: 메타 description 중요, FAQ 블록(People Also Ask 대비),
+ * 정의형 스니펫 후보, 내부/외부 링크 제안, 영문 slug.
+ */
+const BLOGGER_RULES = `[Blogger(Google 검색) 본문 작성 규칙 — E-E-A-T + Helpful Content]
+
+1. 첫 단락(2~3문장)에서 검색 의도 직답.
+   - 첫 문장: 사용자 문제·질문 한 줄로 재진술.
+   - 둘째 문장: 이 글이 어떤 답을 주는지 한 문장 요약.
+   - 셋째(선택): 누구에게 유용한지 (학년·과목·상황).
+2. 본문 분량 1,800–2,500자 (공백 제외). 한 화면에 한 H2 단위가 보일 정도로 단락 분리.
+3. 소제목 구조 — 검색 의도에 맞춘 H2 4~6개. 첫 H2는 "정의/요약"형,
+   중간은 "방법/단계/비교", 마지막은 "FAQ" 또는 "정리/다음 단계".
+4. **FAQ 블록 필수** — 본문 끝에 <h2>자주 묻는 질문</h2> + Q&A 3~5쌍.
+   각 답은 50~120자(정의형 스니펫 후보). People Also Ask 대비.
+5. 1인칭 경험 + 출처 균형:
+   - 1인칭 마커("저는/제가/직접/써본/느낀") 본문에 5~8회 — E-E-A-T의 Experience.
+   - 검증 가능한 사실(통계·연구·교과서 페이지)에는 출처 또는 "출처 미상" 표기.
+   - 단정 금지: "OOO 교재가 최고" → "제가 써본 범위에서는 OOO 단원이 도움이 됐어요"
+6. 정의·핵심 용어는 첫 등장 시 한 문장 정의 (정의형 스니펫 후보).
+   예: "수능 듣기는 6월·9월 평가원 모의고사를 기준으로 출제 경향을 분석한다."
+7. 메타 설명(description) — 120~155자, 본문 첫 단락 요약 + CTA 1구.
+   본문 첫 문장과 동일하게 복사 금지(요약체로 변형).
+8. 절대 쓰지 말 것 (Helpful Content 감점):
+   - 한국어 AI 어휘: "또한, 따라서, 결론적으로, 궁극적으로, 핵심적으로, 뿐만 아니라, 그러므로"
+   - 클릭베이트: "이것만 알면 끝, 100% 보장, 완벽 정복"
+   - 키워드 스터핑: 같은 키워드 한 단락 3회 이상
+   - 광고성 단정: "최고/유일/필수/무조건"
+9. labels(Blogger 태그) 3~5개 — 광범위(\"교육\")보다 구체(\"중1 영어 듣기\") 우선.`;
+
 function buildMeta(p: GenerateAllChannelsParams): string {
   const product = p.productName ? `교재/제품명: ${p.productName}` : "";
   const audience = p.targetAudience ? `타겟 독자: ${p.targetAudience}` : "";
@@ -168,16 +201,18 @@ async function generateLongForm(
 키워드: ${p.keyword}
 ${meta}
 
+${BLOGGER_RULES}
+
 ${NAVER_RULES}
 
 아래 JSON 스키마를 정확히 따라 응답하세요 (JSON 외 텍스트 없이):
 
 {
   "blogger": {
-    "title": "SEO 최적화 블로그 제목 (30~60자)",
-    "content_html": "HTML 본문. h2/h3 소제목 포함, 2000자 이상 상세한 교육 정보 콘텐츠. <h2>, <h3>, <p>, <ul>, <li> 태그만 사용.",
-    "description": "메타 설명 (100~160자, 핵심 키워드 포함)",
-    "labels": ["관련 태그1", "태그2", "태그3 (최대 5개)"]
+    "title": "Google SEO 제목 (28~60자, 키워드 앞배치, 숫자/구체 혜택 1개 권장)",
+    "content_html": "HTML 본문 1,800~2,500자. 위 [Blogger 본문 작성 규칙] 9가지 준수. 첫 단락 검색 의도 직답 + H2 4~6개 + 본문 끝 <h2>자주 묻는 질문</h2> + Q&A 3~5쌍. <h2>, <h3>, <p>, <ul>, <li>, <strong>, <a> 태그만 사용.",
+    "description": "메타 설명 120~155자, 본문 요약 + CTA 1구 (첫 문장 그대로 복사 금지)",
+    "labels": ["구체 태그1 (예: 중1 영어 듣기)", "태그2", "태그3 (3~5개)"]
   },
   "naver": {
     "title": "네이버 SEO 제목 (25~38자, 후기/의문형 권장 — 1위 패턴)",
@@ -283,12 +318,14 @@ export async function generateAllChannels(
 키워드: ${params.keyword}
 ${meta}
 
+${BLOGGER_RULES}
+
 ${NAVER_RULES}
 
 아래 JSON 스키마를 정확히 따라 응답하세요 (JSON 외 텍스트 없이):
 
 {
-  "blogger": { "title": "SEO 블로그 제목", "content_html": "HTML 본문 2000자 이상", "description": "메타 설명 100~160자", "labels": ["태그"] },
+  "blogger": { "title": "Google SEO 제목 28~60자", "content_html": "본문 1,800~2,500자, 위 [Blogger 본문 작성 규칙] 9가지 준수. 첫 단락 검색 의도 직답 + H2 4~6 + FAQ 블록 필수", "description": "메타 120~155자, 본문 첫 문장과 다른 요약", "labels": ["구체 태그 3~5"] },
   "naver": { "title": "네이버 제목 25~38자 (의문/후기형)", "content_html": "본문 2,200~2,800자, 위 [네이버 본문 작성 규칙] 6가지 준수. 첫 문장 ❓ 의문문, <h2> 5~6개 시간순, ✔ 체크박스 3~4곳, 1인칭 마커 8회+", "description": "요약 50~100자", "tags": ["태그"] },
   "newsletter": { "subject": "이메일 제목", "preheader": "프리헤더", "body_html": "뉴스레터 본문" },
   "instagram": { "caption": "캡션 (이모지 포함)", "hashtags": ["#태그"] },
