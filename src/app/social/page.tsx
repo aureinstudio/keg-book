@@ -13,6 +13,8 @@ type PageProps = {
   searchParams: Promise<{
     bf?: string;
     postId?: string;
+    jobId?: string;
+    when?: string;
     msg?: string;
     imgs?: string;
     warn?: string;
@@ -20,6 +22,22 @@ type PageProps = {
     channel?: string;
   }>;
 };
+
+function formatWhen(ms: string): string | null {
+  const n = Number.parseInt(ms, 10);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  try {
+    return new Date(n).toLocaleString("ko-KR", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return null;
+  }
+}
 
 function warnMessage(code: string): string | null {
   switch (code) {
@@ -114,6 +132,28 @@ export default async function SocialPage({ searchParams }: PageProps) {
               ⚠ {warnMessage(sp.warn)}
             </div>
           )}
+        </div>
+      )}
+      {sp.bf === "queued" && sp.jobId && (
+        <div className="mb-5 text-[13px]"
+          style={{ backgroundColor: "rgba(64,64,64,0.08)", border: "1px solid rgba(64,64,64,0.25)", color: "#404040", borderRadius: "8px", padding: "12px 16px" }}
+          role="status">
+          발행 큐에 예약했습니다.
+          {sp.when && formatWhen(sp.when) && (
+            <span className="ml-1.5">예약 시각: <strong>{formatWhen(sp.when)}</strong>.</span>
+          )}
+          {Number(sp.imgs ?? 0) > 0 && (
+            <span className="ml-1.5">카드뉴스 {sp.imgs}장 첨부 예약.</span>
+          )}{" "}
+          <span className="font-mono text-[11px]">job id: {sp.jobId}</span>
+          {sp.warn && warnMessage(sp.warn) && (
+            <div className="mt-1.5 text-[12px]" style={{ color: "#737373" }}>
+              ⚠ {warnMessage(sp.warn)}
+            </div>
+          )}
+          <div className="mt-1.5 text-[12px]" style={{ color: "#737373" }}>
+            <a href="/publish-queue" className="underline">발행 큐 보기 →</a>
+          </div>
         </div>
       )}
       {sp.bf === "err" && sp.msg && (

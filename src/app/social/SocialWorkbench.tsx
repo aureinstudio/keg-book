@@ -1,7 +1,7 @@
 "use client";
 
 import { saveOutputDraftAction } from "@/app/actions/saveOutputDraft";
-import { submitBufferQueue } from "@/app/social/actions";
+import { enqueueBufferQueue, submitBufferQueue } from "@/app/social/actions";
 import type { BufferChannelLite } from "@/lib/buffer/listBufferChannels";
 import {
   buildSocialPack,
@@ -191,6 +191,13 @@ export function SocialWorkbench({
   // 캐러셀 첨부 가능 + 인스타 선택 시 기본 ON
   const canAttachCarousel = carouselAvailable && isInstagramSelected;
   const [attachCarousel, setAttachCarousel] = useState<boolean>(true);
+
+  // 예약 시각 — datetime-local 의 native 포맷("YYYY-MM-DDTHH:mm")을 그대로 사용.
+  // 비어 있으면 enqueueBufferQueue 는 즉시 처리 가능한 잡으로 적재한다.
+  const [scheduledAt, setScheduledAt] = useState<string>("");
+  const scheduledMs = scheduledAt ? Date.parse(scheduledAt) : NaN;
+  const scheduleInPast =
+    Number.isFinite(scheduledMs) && scheduledMs < Date.now() - 60_000;
 
   // 채널 선택 시 본문을 해당 채널 형식으로 자동 채움 (사용자 수정 전까지만)
   const [queueTouched, setQueueTouched] = useState(false);
@@ -696,15 +703,59 @@ export function SocialWorkbench({
                 </div>
               )}
             </label>
-            <button
-              type="submit"
-              className="w-fit rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors hover:opacity-90"
-              style={{ backgroundColor: "var(--color-accent)" }}
-            >
-              {canAttachCarousel && attachCarousel
-                ? `Buffer에 addToQueue (카드뉴스 ${carouselCount}장 포함)`
-                : "Buffer에 addToQueue"}
-            </button>
+            {/* 예약 시각 (선택) — 비우면 즉시 큐 처리 */}
+            <label className="flex flex-col gap-1.5">
+              <span className="text-xs font-medium" style={{ color: "var(--color-text-muted)" }}>
+                예약 시각 (선택){" "}
+                <span style={{ color: "var(--color-text-faint)" }}>
+                  — 비우면 다음 워커 사이클에서 즉시 처리
+                </span>
+              </span>
+              <input
+                type="datetime-local"
+                name="scheduledAt"
+                value={scheduledAt}
+                onChange={(e) => setScheduledAt(e.target.value)}
+                className="rounded-lg px-3 py-2 text-sm"
+                style={{
+                  border: `1px solid ${scheduleInPast ? "#991b1b" : "var(--color-border)"}`,
+                  backgroundColor: "var(--color-surface-2)",
+                  color: "var(--color-text)",
+                  maxWidth: "20rem",
+                }}
+              />
+              {scheduleInPast && (
+                <span className="text-[11px]" style={{ color: "#991b1b" }}>
+                  과거 시각은 사용할 수 없습니다.
+                </span>
+              )}
+            </label>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="submit"
+                formAction={submitBufferQueue}
+                className="rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors hover:opacity-90"
+                style={{ backgroundColor: "#404040" }}
+                title="Buffer API 로 즉시 큐(addToQueue) 호출 — 예약 시각 무시"
+              >
+                {canAttachCarousel && attachCarousel
+                  ? `Buffer 즉시 발행 (카드뉴스 ${carouselCount}장 포함)`
+                  : "Buffer 즉시 발행"}
+              </button>
+              <button
+                type="submit"
+                formAction={enqueueBufferQueue}
+                disabled={scheduleInPast}
+                className="rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors hover:opacity-90 disabled:opacity-50"
+                style={{ backgroundColor: "var(--color-accent)" }}
+                title="발행 큐(publish_jobs) 에 적재 — 워커가 주기적으로 picking"
+              >
+                {scheduledAt
+                  ? "예약 큐에 추가"
+                  : "큐에 추가 (즉시 처리 대상)"}
+              </button>
+            </div>
           </form>
         )}
       </section>
