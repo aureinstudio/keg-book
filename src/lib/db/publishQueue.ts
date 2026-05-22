@@ -107,6 +107,105 @@ export async function updatePublishJobStatus(
   }
 }
 
+/**
+ * 워커 전용 — `pending` 상태이면서 실행 가능 시각이 도래한 잡을 조회.
+ * 실제 claim 은 별도 (atomic UPDATE) 단계에서 수행한다.
+ */
+export async function listClaimablePendingJobs(
+  limit = 10,
+): Promise<PublishJobRow[]> {
+  const db = getDb();
+  const now = Date.now();
+  const { data, error } = await db
+    .from("publish_jobs")
+    .select("*")
+    .eq("status", "pending")
+    .or(`run_after.is.null,run_after.lte.${now}`)
+    .order("created_at", { ascending: true })
+    .limit(limit);
+
+  if (error) throw new Error(`listClaimablePendingJobs 실패: ${error.message}`);
+  return (data ?? []) as PublishJobRow[];
+}
+
+/**
+ * 잡을 원자적으로 claim — `status = 'pending'` 조건과 함께 UPDATE.
+ * 다른 워커가 동시에 같은 잡을 claim 시도하면 한 쪽만 성공한다 (Supabase 가
+ * UPDATE...WHERE 의 row count 를 반환).
+ *
+ * @returns claim 성공 시 갱신된 row, 실패(이미 다른 워커가 가져감)면 null.
+ */
+export async function claimJob(id: string): Promise<PublishJobRow | null> {
+  const db = getDb();
+  const now = Date.now();
+  const { data, error } = await db
+    .from("publish_jobs")
+    .update({ status: "processing", updated_at: now })
+    .eq("id", id)
+    .eq("status", "pending")
+    .select()
+    .maybeSingle();
+
+  if (error) {
+    // 경합 시점 race condition 은 정상 — 에러 throw 하지 않음
+    if (/no\s*rows|0\s*rows/i.test(error.message)) return null;
+    throw new Error(`claimJob 실패: ${error.message}`);
+  }
+  return (data as PublishJobRow | null) ?? null;
+}
+
+export async function markJobDone(id: string): Promise<void> {
+  const db = getDb();
+  const now = Date.now();
+  const { error } = await db
+    .from("publish_jobs")
+    .update({ status: "done", updated_at: now, last_error: null })
+    .eq("id", id);
+  if (error) throw new Error(`markJobDone 실패: ${error.message}`);
+}
+
+/**
+ * 실패 후 재시도 가능하면 pending 상태로 되돌리고 run_after 를 미루며
+ * attempts 를 증가시킨다. max_attempts 도달 시 failed 로 종료한다.
+ */
+export async function requeueOrFail(
+  job: PublishJobRow,
+  errorMessage: string,
+  nextRunAfter: number,
+): Promise<{ status: "pending" | "failed"; attempts: number }> {
+  const db = getDb();
+  const now = Date.now();
+  const nextAttempts = job.attempts + 1;
+  const reachedMax = nextAttempts >= job.max_attempts;
+
+  if (reachedMax) {
+    const { error } = await db
+      .from("publish_jobs")
+      .update({
+        status: "failed",
+        attempts: nextAttempts,
+        last_error: errorMessage.slice(0, 500),
+        updated_at: now,
+      })
+      .eq("id", job.id);
+    if (error) throw new Error(`requeueOrFail(failed) 실패: ${error.message}`);
+    return { status: "failed", attempts: nextAttempts };
+  }
+
+  const { error } = await db
+    .from("publish_jobs")
+    .update({
+      status: "pending",
+      attempts: nextAttempts,
+      last_error: errorMessage.slice(0, 500),
+      run_after: nextRunAfter,
+      updated_at: now,
+    })
+    .eq("id", job.id);
+  if (error) throw new Error(`requeueOrFail(retry) 실패: ${error.message}`);
+  return { status: "pending", attempts: nextAttempts };
+}
+
 export async function publishJobStats(): Promise<Record<PublishJobStatus | "total", number>> {
   const db = getDb();
   const { data, error } = await db
