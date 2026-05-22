@@ -14,6 +14,7 @@ const PUBLIC_EXACT = new Set<string>([
 
 const PUBLIC_PREFIXES = [
   "/api/auth/",   // NextAuth handler — 자체 인증 처리
+  "/api/cron/",   // CRON_SECRET Bearer 자체 인증 (route 단에서 검증)
   "/_next/",
   "/static/",
 ];
