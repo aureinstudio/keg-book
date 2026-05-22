@@ -109,6 +109,22 @@ Mode: Builder
 - 모든 **채널별 생성물**(블로그 초안, 네이버 HTML, 소셜 문안, 뉴스레터 MD, 카드뉴스 이미지·로그 등)은 루트 **`_output/<매체>/`** 에 둔다.
 - 매체 폴더 정의·파일명 규칙: **`_output/README.md`**.
 
+## 발행 큐 워커 운영 (Vercel Cron)
+
+- **트리거:** `vercel.json` 의 `crons` 항목 — `/api/cron/publish` 를 매 분(`* * * * *`) 호출.
+- **인증:** Vercel 환경변수 `CRON_SECRET` 설정 시, Vercel Cron 이 `Authorization: Bearer ${CRON_SECRET}` 헤더를 자동 부착한다. 라우트는 이 헤더가 없거나 불일치면 401, `CRON_SECRET` 미설정이면 503 으로 안전 차단.
+- **요금제 주의:**
+  - **Hobby:** 크론 표현식이 무시되고 **하루 1회**만 실행됨. 분 단위 발행 필요하면 **Pro** 이상.
+  - **Pro:** 모든 cron expression 허용. `* * * * *` 그대로 동작.
+- **처리량:** 한 호출 = 한 배치(기본 10건, `?batch=N` 으로 1–50 조정). 한 잡 처리 시간은 외부 API(Buffer) 응답에 의존.
+- **수동 트리거 (디버깅):**
+  ```bash
+  curl -X POST https://<host>/api/cron/publish \
+    -H "Authorization: Bearer $CRON_SECRET"
+  ```
+- **로컬 개발:** `npm run dev` 후 동일한 curl 로 호출 가능. `.env.local` 에 `CRON_SECRET` 지정.
+- **재시도 정책:** `requeueOrFail` 가 지수 backoff (1m → 5m → 25m → ... cap 6h) 로 `run_after` 갱신. `max_attempts` (기본 3) 도달 시 `failed`. `fatal` 핸들러 결과는 attempts 를 점프시켜 즉시 `failed`.
+
 ## 서브에이전트·웹앱 연동
 
 - **Claude / Task 분기:** 코리아교육그룹 출판 마케팅 역할은 `.claude/agents/keg-*.md`에 정의한다. 의도→에이전트 표는 **`CLAUDE.md`** 의 *Subagent routing* 절.
