@@ -18,19 +18,80 @@ type PageProps = {
   }>;
 };
 
-async function loadBloggerPrefill(fromId: string | undefined) {
-  if (!fromId) return {};
-  const gen = await getGeneration(fromId).catch(() => null);
-  const blogger = (gen?.raw_json as Record<string, unknown> | undefined)?.blogger as
-    | { title?: string; description?: string; content_html?: string; labels?: string[] }
-    | undefined;
-  if (!blogger) return {};
-  return {
-    initialTitle: blogger.title,
-    initialDescription: blogger.description,
-    initialContent: blogger.content_html,
-    initialLabels: blogger.labels,
-  };
+async function renderFormWithPrefill(
+  fromId: string | undefined,
+  blogs: { id: string; name: string }[],
+) {
+  let initialTitle: string | undefined;
+  let initialDescription: string | undefined;
+  let initialContent: string | undefined;
+  let initialLabels: string[] | undefined;
+  let debugInfo: string | null = null;
+
+  if (fromId) {
+    try {
+      const gen = await getGeneration(fromId);
+      if (!gen) {
+        debugInfo = `[debug] getGeneration(${fromId.slice(0, 8)}) → null`;
+      } else {
+        const rawJson = gen.raw_json as Record<string, unknown> | undefined;
+        const rawJsonType =
+          rawJson === null
+            ? "null"
+            : Array.isArray(rawJson)
+              ? "array"
+              : typeof rawJson;
+        const topKeys =
+          rawJson && typeof rawJson === "object"
+            ? Object.keys(rawJson).join(",")
+            : "(n/a)";
+        const blogger = rawJson?.blogger as
+          | {
+              title?: string;
+              description?: string;
+              content_html?: string;
+              labels?: string[];
+            }
+          | undefined;
+        if (!blogger) {
+          debugInfo = `[debug] raw_json present (type=${rawJsonType}, keys=[${topKeys}]) but .blogger missing`;
+        } else {
+          initialTitle = blogger.title;
+          initialDescription = blogger.description;
+          initialContent = blogger.content_html;
+          initialLabels = blogger.labels;
+          debugInfo = `[debug] prefill OK · title=${blogger.title?.length ?? 0}자 · desc=${blogger.description?.length ?? 0}자 · content=${blogger.content_html?.length ?? 0}자 · labels=${blogger.labels?.length ?? 0}개`;
+        }
+      }
+    } catch (e) {
+      debugInfo = `[debug] getGeneration threw: ${e instanceof Error ? e.message : String(e)}`;
+    }
+  }
+
+  return (
+    <>
+      {debugInfo && (
+        <pre
+          className="mb-3 rounded-lg p-2 font-mono text-[11px] overflow-x-auto"
+          style={{
+            backgroundColor: "var(--color-surface-2)",
+            color: "var(--color-text-muted)",
+            border: "1px solid var(--color-border)",
+          }}
+        >
+          {debugInfo}
+        </pre>
+      )}
+      <BloggerDraftForm
+        blogs={blogs}
+        generationId={fromId}
+        initialTitle={initialTitle}
+        initialDescription={initialDescription}
+        initialContent={initialContent}
+        initialLabels={initialLabels}
+      />
+    </>
+  );
 }
 
 export default async function BloggerPage({ searchParams }: PageProps) {
@@ -222,11 +283,10 @@ export default async function BloggerPage({ searchParams }: PageProps) {
       <PrefillFromGeneration channel="blogger" basePath="/blogger" fromId={sp.from} />
 
       {!blogError && blogs.length > 0 && (
-        <BloggerDraftForm
-          blogs={blogs.map((b) => ({ id: b.id, name: b.name }))}
-          generationId={sp.from}
-          {...(await loadBloggerPrefill(sp.from))}
-        />
+        await renderFormWithPrefill(
+          sp.from,
+          blogs.map((b) => ({ id: b.id, name: b.name })),
+        )
       )}
 
       <p className="mt-6 text-[12px]" style={{ color: "var(--color-text-faint)" }}>
