@@ -165,6 +165,7 @@ export default async function SocialPage({ searchParams }: PageProps) {
       )}
 
       <SocialWorkbench
+        key={sp.from ?? "blank"}
         bufferChannels={bufferChannels}
         bufferListError={bufferListError}
         bufferTokenConfigured={Boolean(token)}

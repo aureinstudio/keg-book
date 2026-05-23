@@ -71,6 +71,7 @@ export default async function NaverAssistPage({
       <div className="flex flex-col gap-4">
         <div style={{ backgroundColor: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: "12px", padding: "20px" }}>
           <NaverExportPanel
+            key={fromId ?? "blank"}
             initialTitle={initialTitle}
             initialDescription={initialDescription}
             initialBody={initialBody}

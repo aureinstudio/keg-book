@@ -43,6 +43,7 @@ export default async function NewsletterPage({ searchParams }: PageProps) {
 
       <div style={{ backgroundColor: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: "12px", padding: "20px" }}>
         <NewsletterWorkbench
+          key={sp.from ?? "blank"}
           initialSubject={initialSubject}
           initialPreheader={initialPreheader}
           initialBody={initialBody}
