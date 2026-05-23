@@ -34,7 +34,7 @@ const navSections: NavSection[] = [
   {
     label: "시작",
     items: [
-      { href: "/",         label: "홈",         icon: "K", color: "#5F6368" },
+      { href: "/",         label: "홈",         icon: "K", color: "#525252" },
       { href: "/generate", label: "콘텐츠 생성", icon: "✦", color: "#0A0A0A" },
     ],
   },
@@ -49,9 +49,9 @@ const navSections: NavSection[] = [
         icon: "S",
         color: "#404040",
         children: [
-          { href: "/social#instagram", label: "Instagram", icon: "I", color: "#E1306C" },
-          { href: "/social#threads",   label: "Threads",   icon: "T", color: "#000000" },
-          { href: "/social#linkedin",  label: "LinkedIn",  icon: "in", color: "#0A66C2" },
+          { href: "/social#instagram", label: "Instagram", icon: "I", color: "#0A0A0A" },
+          { href: "/social#threads",   label: "Threads",   icon: "T", color: "#404040" },
+          { href: "/social#linkedin",  label: "LinkedIn",  icon: "in", color: "#525252" },
         ],
       },
       { href: "/newsletter", label: "뉴스레터", icon: "M", color: "#525252" },
@@ -61,7 +61,7 @@ const navSections: NavSection[] = [
   {
     label: "관리",
     items: [
-      { href: "/history",       label: "작업 기록", icon: "H", color: "#5F6368" },
+      { href: "/history",       label: "작업 기록", icon: "H", color: "#525252" },
       { href: "/publish-queue", label: "발행 큐",  icon: "Q", color: "#0A0A0A" },
     ],
   },
