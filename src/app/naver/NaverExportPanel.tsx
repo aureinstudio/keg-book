@@ -163,11 +163,12 @@ export function NaverExportPanel({
   // ── 종합 점수 (0–100)
   const passCount = checks.filter((c) => c.ok).length;
   const seoScore = Math.round((passCount / checks.length) * 100);
+  // 모노톤 — 색 대신 기호와 명도 차이로 4-tier 표현
   const scoreTier =
-    seoScore >= 85 ? { label: "1위 후보", color: "#15803d" }
-    : seoScore >= 65 ? { label: "상위권", color: "#525252" }
-    : seoScore >= 40 ? { label: "보완 필요", color: "#a16207" }
-    : { label: "재작성 권장", color: "#991b1b" };
+    seoScore >= 85 ? { label: "★ 1위 후보",    color: "var(--color-text)" }
+    : seoScore >= 65 ? { label: "● 상위권",     color: "var(--color-text)" }
+    : seoScore >= 40 ? { label: "◐ 보완 필요",  color: "var(--color-text-muted)" }
+    :                  { label: "○ 재작성 권장", color: "var(--color-text-faint)" };
 
   async function copyExport() {
     try {
@@ -224,9 +225,9 @@ export function NaverExportPanel({
             <span
               className="rounded-full px-2 py-0.5 text-[11px] font-medium tabular-nums"
               style={{
-                backgroundColor: `${scoreTier.color}15`,
+                backgroundColor: "var(--color-surface)",
                 color: scoreTier.color,
-                border: `1px solid ${scoreTier.color}40`,
+                border: "1px solid var(--color-border-strong)",
               }}
               aria-label={`SEO 점수 ${seoScore}점, ${scoreTier.label}`}
             >
@@ -345,8 +346,12 @@ export function NaverExportPanel({
           HTML 전체 복사
         </button>
         {copyState === "ok" && (
-          <span className="text-sm" style={{ color: "#059669" }} role="status">
-            복사되었습니다. 네이버 글쓰기에 붙여넣으세요.
+          <span
+            className="text-sm"
+            style={{ color: "var(--color-text)" }}
+            role="status"
+          >
+            ✓ 복사되었습니다. 네이버 글쓰기에 붙여넣으세요.
           </span>
         )}
         {copyState === "err" && (
@@ -385,7 +390,7 @@ export function NaverExportPanel({
           렌더 미리보기
         </p>
         <div
-          className="rounded-lg p-4 [&_a]:text-sky-600 [&_a]:underline [&_h1]:mb-3 [&_h1]:text-xl [&_h1]:font-semibold [&_li]:my-0.5 [&_p]:mb-2 [&_p]:leading-relaxed [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5"
+          className="rounded-lg p-4 [&_a]:underline [&_a]:underline-offset-2 [&_h1]:mb-3 [&_h1]:text-xl [&_h1]:font-semibold [&_li]:my-0.5 [&_p]:mb-2 [&_p]:leading-relaxed [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5"
           style={{
             backgroundColor: "var(--color-surface)",
             border: "1px solid var(--color-border)",
