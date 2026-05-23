@@ -54,3 +54,5 @@ _output/**/*.webm
 _output/**/*.pdf
 
 .vercel
+.env*.local
+.env.local.*
