@@ -39,8 +39,11 @@ export default function GlobalError({
         <button
           type="button"
           onClick={() => reset()}
-          className="rounded-lg px-4 py-2 text-sm font-medium text-white"
-          style={{ backgroundColor: "#525252" }}
+          className="rounded-lg px-4 py-2 text-sm font-medium"
+          style={{
+            backgroundColor: "var(--color-accent)",
+            color: "var(--color-accent-on)",
+          }}
         >
           다시 시도
         </button>
