@@ -128,6 +128,48 @@ const BLOGGER_RULES = `[Blogger(Google 검색) 본문 작성 규칙 — E-E-A-T 
    - 광고성 단정: "최고/유일/필수/무조건"
 9. labels(Blogger 태그) 3~5개 — 광범위(\"교육\")보다 구체(\"중1 영어 듣기\") 우선.`;
 
+/**
+ * 뉴스레터(메일리) 본문 작성 규칙 — Josh-style Q&A 인터뷰형.
+ * 참고: https://maily.so/josh/posts/knrj1pn1rld (5.65K 조회, 2026-05-20)
+ * 템플릿: _template/newsletter/maily-story-qa.md
+ *
+ * 핵심: 단순 정보 전달이 아니라 "스토리·Q&A 구조" 로 끝까지 읽게 만든다.
+ */
+const NEWSLETTER_RULES = `[뉴스레터(메일리) Josh-style Q&A 작성 규칙]
+
+1. subject (이메일 제목) 20~50자 — 구체 숫자·결과 포함 권장.
+   예: "고객 한 명당 월 5,000달러를 받는 1인 AI 사업가" (구체 숫자 + 결과)
+2. preheader (인박스 미리보기) 40~90자 — 제목을 보완하는 한 줄 요약,
+   제목과 동일 문장 금지(중복 노출 비효율).
+3. body_html 분량 1,500~3,000자 (공백 제외). 짧으면 후크 약해지고 길면 이탈.
+4. 본문 구조 — 순서대로:
+   a) <h2> 한 줄 후크(부제) — '~를 파세요' / '~가 정답이에요' 단언형
+   b) <p> 리드 3문단 — 누구의 이야기·왜 지금·독자가 얻을 것
+   c) <p><strong>"도입 인용"</strong> ...해설</p>
+   d) <hr/>
+   e) <h2>1부. 제목</h2> + Q&A 2~4개
+   f) <hr/>
+   g) <h2>2부. 제목</h2> + Q&A 2~4개
+   h) <hr/>
+   i) <h3>☕ 본문 중간 CTA</h3> + <p><a>CTA 버튼</a></p>
+   j) (선택) <h2>3부. 제목</h2> + Q&A
+   k) <hr/>
+   l) <h3>푸터 직전 CTA</h3>
+5. Q&A 단위 — 매 질문은 <h3>Q. 질문문장</h3> 다음 줄에
+   <p><strong>답변 첫 문장 (결론 먼저)</strong> 이어지는 본문.</p>
+6. 1인칭 친근체 강제 — "저는·제가·저도" 본문에 6회+. "당사·본 회사" 금지.
+7. 구체 수치·시간·금액 1~3회 — 추상어("많이/대부분") 대신 "주 3회·30분".
+8. 강조(<strong>) 는 문장 단위로 절제 — 한 Q 당 1~2개. 단어만 굵게 금지.
+9. CTA 2개 필수 — 본문 중간 1개 + 푸터 직전 1개. 각각 다른 각도(예: 신청·미리보기).
+   CTA 링크 형식: <a href="{{URL}}"><strong>👉 문구</strong></a>
+10. 사용 가능 태그 — <h2>, <h3>, <p>, <strong>, <em>, <a>, <ul>, <li>, <ol>,
+    <blockquote>, <hr/>. (이미지는 메일리 에디터에서 직접 첨부, body_html 에서 생략)
+11. 절대 쓰지 말 것 (스팸·AI 슬롭):
+    - "또한, 따라서, 결론적으로, 궁극적으로, 핵심적으로"
+    - "할인·100%·무료증정·즉시·지금 바로·이번 기회"
+    - 광고성 단정 ("최고·유일·필수")
+12. dek(부제, JSON 의 preheader) 와 본문 첫 <h2> 후크는 의미 중복 금지.`;
+
 function buildMeta(p: GenerateAllChannelsParams): string {
   const product = p.productName ? `교재/제품명: ${p.productName}` : "";
   const audience = p.targetAudience ? `타겟 독자: ${p.targetAudience}` : "";
@@ -248,13 +290,15 @@ async function generateShortForm(
 키워드: ${p.keyword}
 ${meta}
 
+${NEWSLETTER_RULES}
+
 아래 JSON 스키마를 정확히 따라 응답하세요 (JSON 외 텍스트 없이):
 
 {
   "newsletter": {
-    "subject": "이메일 제목 (20~50자, 숫자·혜택 포함)",
-    "preheader": "프리헤더 텍스트 (40~90자)",
-    "body_html": "뉴스레터 HTML 본문. 인사말, 본문 2~3단락, CTA 버튼 텍스트 포함. <p>, <ul>, <li>, <strong>, <a> 태그만 사용."
+    "subject": "이메일 제목 — 위 규칙 1번 (20~50자, 구체 숫자/결과 포함)",
+    "preheader": "프리헤더 — 위 규칙 2번 (40~90자, 제목과 다른 각도)",
+    "body_html": "뉴스레터 HTML 본문 — 위 규칙 3~12번을 모두 따를 것. Josh-style Q&A 구조 필수."
   },
   "instagram": {
     "caption": "인스타그램 캡션 (150~300자, 이모지 포함, 해시태그 제외)",
@@ -322,12 +366,14 @@ ${BLOGGER_RULES}
 
 ${NAVER_RULES}
 
+${NEWSLETTER_RULES}
+
 아래 JSON 스키마를 정확히 따라 응답하세요 (JSON 외 텍스트 없이):
 
 {
   "blogger": { "title": "Google SEO 제목 28~60자", "content_html": "본문 1,800~2,500자, 위 [Blogger 본문 작성 규칙] 9가지 준수. 첫 단락 검색 의도 직답 + H2 4~6 + FAQ 블록 필수", "description": "메타 120~155자, 본문 첫 문장과 다른 요약", "labels": ["구체 태그 3~5"] },
   "naver": { "title": "네이버 제목 25~38자 (의문/후기형)", "content_html": "본문 2,200~2,800자, 위 [네이버 본문 작성 규칙] 6가지 준수. 첫 문장 ❓ 의문문, <h2> 5~6개 시간순, ✔ 체크박스 3~4곳, 1인칭 마커 8회+", "description": "요약 50~100자", "tags": ["태그"] },
-  "newsletter": { "subject": "이메일 제목", "preheader": "프리헤더", "body_html": "뉴스레터 본문" },
+  "newsletter": { "subject": "20~50자 (구체 숫자 포함)", "preheader": "40~90자 (제목과 다른 각도)", "body_html": "1,500~3,000자, 위 [뉴스레터 규칙] 12가지 준수. Josh-style Q&A 구조 필수 — h2 후크 + 리드 3문단 + Q&A 섹션 + CTA 2개" },
   "instagram": { "caption": "캡션 (이모지 포함)", "hashtags": ["#태그"] },
   "threads": { "text": "Threads 글" },
   "linkedin": { "text": "LinkedIn 포스트 1,200~1,500자, 첫 줄 140자 이내 훅, 단락 사이 \\\\n\\\\n", "hashtags": ["3~5개 단어만 (# 없이)"] }
