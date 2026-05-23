@@ -161,12 +161,15 @@ export function NewsletterWorkbench({
         <p
           className="rounded-lg px-3 py-2 text-sm"
           style={{
-            backgroundColor: saveMsg.startsWith("저장:") ? "#EFF6FF" : "#FAFAFA",
-            color: saveMsg.startsWith("저장:") ? "#1E40AF" : "#404040",
+            backgroundColor: saveMsg.startsWith("저장:")
+              ? "var(--color-surface-3)"
+              : "var(--color-surface-2)",
+            color: "var(--color-text)",
+            border: "1px solid var(--color-border)",
           }}
           role="status"
         >
-          {saveMsg}
+          {saveMsg.startsWith("저장:") ? `✓ ${saveMsg}` : `⚠ ${saveMsg}`}
         </p>
       )}
 
@@ -224,8 +227,11 @@ export function NewsletterWorkbench({
         <button
           type="button"
           onClick={() => void copyFull()}
-          className="rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors hover:opacity-90"
-          style={{ backgroundColor: "#7C3AED" }}
+          className="rounded-lg px-4 py-2 text-sm font-medium transition-colors hover:opacity-90"
+          style={{
+            backgroundColor: "var(--color-accent)",
+            color: "var(--color-accent-on)",
+          }}
         >
           전체 HTML 복사
         </button>
