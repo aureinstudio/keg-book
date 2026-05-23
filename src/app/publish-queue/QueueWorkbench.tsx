@@ -91,7 +91,7 @@ export function QueueWorkbench() {
             {mailyStatus === null ? (
               <span style={{ color: "var(--color-text-faint)" }}>확인 중…</span>
             ) : mailyStatus.configured ? (
-              <span style={{ color: "#059669" }}>MAILY_API_KEY 설정됨</span>
+              <span style={{ color: "var(--color-text)" }}>● MAILY_API_KEY 설정됨</span>
             ) : (
               <span style={{ color: "var(--color-text-faint)" }}>키 없음 — 뉴스레터 HTML·복사만 사용 가능</span>
             )}
@@ -151,8 +151,11 @@ export function QueueWorkbench() {
           <button
             type="submit"
             disabled={pending}
-            className="w-fit rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors hover:opacity-90 disabled:opacity-50"
-            style={{ backgroundColor: "#2563EB" }}
+            className="w-fit rounded-lg px-4 py-2 text-sm font-medium transition-colors hover:opacity-90 disabled:opacity-50"
+            style={{
+              backgroundColor: "var(--color-accent)",
+              color: "var(--color-accent-on)",
+            }}
           >
             {pending ? "추가 중…" : "큐에 넣기"}
           </button>
@@ -166,12 +169,12 @@ export function QueueWorkbench() {
           style={{ backgroundColor: "var(--color-surface-2)", border: "1px solid var(--color-border)" }}
         >
           {[
-            { label: "대기", value: stats.pending ?? 0, color: "#2563EB" },
-            { label: "처리중", value: stats.processing ?? 0, color: "#171717" },
-            { label: "완료", value: stats.done ?? 0, color: "#059669" },
-            { label: "실패", value: stats.failed ?? 0, color: "#DC2626" },
-            { label: "취소", value: stats.cancelled ?? 0, color: "var(--color-text-faint)" },
-            { label: "전체", value: stats.total ?? 0, color: "var(--color-text-muted)" },
+            { label: "● 대기",   value: stats.pending ?? 0,    color: "var(--color-text-muted)" },
+            { label: "◐ 처리중", value: stats.processing ?? 0, color: "var(--color-text)" },
+            { label: "✓ 완료",   value: stats.done ?? 0,       color: "var(--color-text)" },
+            { label: "✗ 실패",   value: stats.failed ?? 0,     color: "var(--color-text)" },
+            { label: "◌ 취소",   value: stats.cancelled ?? 0,  color: "var(--color-text-faint)" },
+            { label: "Σ 전체",   value: stats.total ?? 0,      color: "var(--color-text)" },
           ].map(({ label, value, color }) => (
             <div key={label} className="flex items-center gap-1.5">
               <span style={{ color: "var(--color-text-faint)" }}>{label}</span>
