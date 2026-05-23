@@ -274,7 +274,11 @@ function CardNewsCard({
     <div className="space-y-3">
       {data.error && (
         <div className="rounded-lg px-3 py-2 text-[11px]"
-          style={{ backgroundColor: "rgba(115,115,115,0.1)", color: "#c47800" }}>
+          style={{
+            backgroundColor: "var(--color-surface-2)",
+            border: "1px solid var(--color-border-strong)",
+            color: "var(--color-text-muted)",
+          }}>
           ⚠ {data.error}
         </div>
       )}
@@ -733,13 +737,13 @@ export function GenerateWorkbench() {
         <div
           className="mb-6 rounded-xl px-4 py-3 text-[13px]"
           style={{
-            backgroundColor: "rgba(38,38,38,0.08)",
-            border: "1px solid rgba(38,38,38,0.25)",
-            color: "#c62828",
+            backgroundColor: "var(--color-surface-3)",
+            border: "1px solid var(--color-border-strong)",
+            color: "var(--color-text)",
           }}
           role="alert"
         >
-          {result.error}
+          ✗ {result.error}
         </div>
       )}
 
@@ -751,13 +755,16 @@ export function GenerateWorkbench() {
             <div
               className="mb-4 rounded-xl px-4 py-3 text-[12px]"
               style={{
-                backgroundColor: "rgba(180,140,40,0.10)",
-                border: "1px solid rgba(180,140,40,0.35)",
-                color: "#7a5a10",
+                backgroundColor: "var(--color-surface-2)",
+                border: "1px solid var(--color-border-strong)",
+                color: "var(--color-text-muted)",
               }}
               role="alert"
             >
-              <p className="mb-1 font-medium" style={{ color: "#6a4a00" }}>
+              <p
+                className="mb-1 font-medium"
+                style={{ color: "var(--color-text)" }}
+              >
                 ⚠ 일부 채널 생성에 실패했습니다 (다른 채널은 정상)
               </p>
               <ul className="ml-4 list-disc space-y-0.5">
@@ -767,7 +774,7 @@ export function GenerateWorkbench() {
                   </li>
                 ))}
               </ul>
-              <p className="mt-2" style={{ color: "#7a5a10" }}>
+              <p className="mt-2" style={{ color: "var(--color-text-muted)" }}>
                 다시 생성하려면 같은 키워드로 한 번 더 시도해 주세요. (API 일시
                 오류는 자동 1회 재시도되었습니다.)
               </p>
