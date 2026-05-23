@@ -407,7 +407,7 @@ export function SocialWorkbench({
         <div className="mb-3 flex items-center gap-2">
           <span
             className="flex h-5 w-5 items-center justify-center rounded text-[10px] font-bold text-white"
-            style={{ backgroundColor: "#E6702A" }}
+            style={{ backgroundColor: "#404040" }}
           >
             T
           </span>
@@ -474,7 +474,7 @@ export function SocialWorkbench({
         <div className="mb-3 flex items-center gap-2">
           <span
             className="flex h-5 w-5 items-center justify-center rounded text-[10px] font-bold text-white"
-            style={{ backgroundColor: "#0A66C2" }}
+            style={{ backgroundColor: "#525252" }}
             aria-hidden="true"
           >
             in
@@ -512,7 +512,7 @@ export function SocialWorkbench({
             type="button"
             onClick={() => void copyText("LinkedIn 포스트", pack.linkedinPost)}
             className="rounded-lg px-3 py-1.5 text-sm font-medium text-white transition-colors hover:opacity-90"
-            style={{ backgroundColor: "#0A66C2" }}
+            style={{ backgroundColor: "#525252" }}
           >
             LinkedIn 복사
           </button>
