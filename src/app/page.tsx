@@ -295,22 +295,7 @@ export default async function LandingPage() {
               <Link
                 key={s.href}
                 href={s.href}
-                className="group rounded-2xl p-5 transition-all hover:shadow-md"
-                style={{
-                  backgroundColor: "var(--color-surface)",
-                  border: "1px solid var(--color-border)",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor =
-                    "var(--color-border-strong)";
-                  e.currentTarget.style.backgroundColor =
-                    "var(--color-surface-2)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = "var(--color-border)";
-                  e.currentTarget.style.backgroundColor =
-                    "var(--color-surface)";
-                }}
+                className="group solution-card rounded-2xl p-5 transition-all hover:shadow-md"
               >
                 <div className="mb-3 flex items-center gap-2.5">
                   <span
