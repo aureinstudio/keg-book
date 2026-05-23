@@ -4,12 +4,42 @@ import { saveOutputDraftAction } from "@/app/actions/saveOutputDraft";
 import { buildNewsletterHtml } from "@/lib/newsletter/buildNewsletterHtml";
 import { useMemo, useState, useTransition } from "react";
 
-const DEFAULT_BODY = `<p>안녕하세요, 구독자 여러분.</p>
-<p>이번 호에서는 <strong>신간 교재</strong>를 소개합니다.</p>
+// 기본 본문 — 메일리 Josh-style Q&A 구조 (참고: _template/newsletter/maily-story-qa.md)
+const DEFAULT_BODY = `<h2>{{한 줄 후크 — 단언형 부제}}</h2>
+
+<p>{{리드 문단 1 — 누구의 이야기인지, 왜 지금 이 주제인지.}}</p>
+<p>{{리드 문단 2 — 핵심 발견 또는 반전. 본문에서 풀어낼 결론 한 번 던지기.}}</p>
+<p>{{리드 문단 3 — 독자가 이 글로 얻을 것.}}</p>
+
+<p><strong>"{{도입 인용 — 강렬한 한 문장}}"</strong> {{인용 해설 1줄.}}</p>
+
+<hr/>
+
+<h2>1부. {{1부 제목}}</h2>
+
+<h3>Q. {{첫 번째 질문}}</h3>
+<p><strong>{{답변 첫 문장 — 결론 먼저, 굵게.}}</strong> {{본문 — 1인칭 친근체, 구체 수치.}}</p>
+
+<h3>Q. {{두 번째 질문}}</h3>
+<p><strong>{{굵은 리드 1문장}}</strong> {{본문.}}</p>
+
+<hr/>
+
+<h2>2부. {{2부 제목}}</h2>
+
+<h3>Q. {{질문}}</h3>
+<p><strong>{{굵은 리드}}</strong> {{본문.}}</p>
+
 <ul>
-  <li>핵심 한 줄 요약</li>
-  <li>구매·문의 링크</li>
-</ul>`;
+  <li>{{구체적·행동 가능한 항목 1}}</li>
+  <li>{{항목 2}}</li>
+</ul>
+
+<hr/>
+
+<h3>☕ {{본문 중간 CTA}}</h3>
+<p>{{설득 메시지 2~3문장.}}</p>
+<p><a href="{{링크 URL}}"><strong>👉 {{CTA 버튼 문구}}</strong></a></p>`;
 
 const inputStyle = {
   border: "1px solid var(--color-border)",
