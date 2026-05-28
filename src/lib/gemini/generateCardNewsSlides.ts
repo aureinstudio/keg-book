@@ -1,5 +1,8 @@
 import { GoogleGenAI } from "@google/genai";
-import { generateCardNewsPngBuffer } from "./generateCardNewsImage";
+import {
+  generateCardNewsPngBuffer,
+  type ReferenceImage,
+} from "./generateCardNewsImage";
 
 const FLASH_MODEL = "gemini-3-flash-preview";
 
@@ -111,8 +114,12 @@ export async function generateCardNewsSlides(params: {
   targetAudience?: string;
   context?: string;
   count?: number;
+  /** 사용자가 업로드한 스타일 레퍼런스 이미지 — 있으면 모든 슬라이드에 스타일 참고로 주입. */
+  referenceImages?: ReferenceImage[];
 }): Promise<CardNewsContent> {
   const count = params.count ?? 3;
+  const refs = params.referenceImages ?? [];
+  const hasRefs = refs.length > 0;
 
   let plans: Omit<CardSlide, "imageBase64">[];
   try {
@@ -127,10 +134,14 @@ export async function generateCardNewsSlides(params: {
   // 병렬 이미지 생성. 1장 실패는 그 슬라이드만 null로.
   const results = await Promise.allSettled(
     plans.map(async (plan) => {
-      const styledPrompt = `${plan.imagePrompt}. Korean educational marketing card news visual, vertical 4:5 aspect, clean composition with empty space at top for headline text overlay, flat editorial illustration style, soft pastel palette, no text in image.`;
+      const styleClause = hasRefs
+        ? "Match the visual style, color palette, composition and illustration treatment of the provided reference image(s) as closely as possible."
+        : "flat editorial illustration style, soft pastel palette,";
+      const styledPrompt = `${plan.imagePrompt}. Korean educational marketing card news visual, vertical 4:5 aspect, clean composition with empty space at top for headline text overlay, ${styleClause} no text in image.`;
       const buf = await generateCardNewsPngBuffer({
         apiKey: params.apiKey,
         prompt: styledPrompt,
+        referenceImages: refs,
       });
       return buf.toString("base64");
     }),

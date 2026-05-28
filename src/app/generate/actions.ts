@@ -1,6 +1,7 @@
 "use server";
 
 import { generateAllChannels, type ChannelContent } from "@/lib/gemini/generateAllChannels";
+import type { ReferenceImage } from "@/lib/gemini/generateCardNewsImage";
 import { auth } from "@/auth";
 import { createGeneration, logActivity } from "@/lib/db/generations";
 import { uploadPngBase64 } from "@/lib/db/storage";
@@ -8,6 +9,25 @@ import { uploadPngBase64 } from "@/lib/db/storage";
 export type GenerateResult =
   | { ok: true; data: ChannelContent; keyword: string; generationId: string | null }
   | { ok: false; error: string };
+
+const MAX_REFERENCE_IMAGES = 6;
+const MAX_REFERENCE_BYTES = 5 * 1024 * 1024; // 5MB/장
+
+/** FormData 의 referenceImages 파일들을 base64 ReferenceImage[] 로 변환. */
+async function readReferenceImages(formData: FormData): Promise<ReferenceImage[]> {
+  const entries = formData.getAll("referenceImages");
+  const files = entries.filter(
+    (e): e is File => e instanceof File && e.size > 0,
+  );
+  const refs: ReferenceImage[] = [];
+  for (const file of files.slice(0, MAX_REFERENCE_IMAGES)) {
+    if (!file.type.startsWith("image/")) continue;
+    if (file.size > MAX_REFERENCE_BYTES) continue;
+    const buf = Buffer.from(await file.arrayBuffer());
+    refs.push({ data: buf.toString("base64"), mimeType: file.type });
+  }
+  return refs;
+}
 
 export async function generateContentAction(formData: FormData): Promise<GenerateResult> {
   const keyword = String(formData.get("keyword") ?? "").trim();
@@ -29,6 +49,7 @@ export async function generateContentAction(formData: FormData): Promise<Generat
   }
 
   const anthropicApiKey = process.env.ANTHROPIC_API_KEY || undefined;
+  const referenceImages = await readReferenceImages(formData);
 
   // 로그인 사용자 정보 (없어도 동작)
   const session = await auth().catch(() => null);
@@ -43,6 +64,7 @@ export async function generateContentAction(formData: FormData): Promise<Generat
       productName,
       targetAudience,
       context,
+      referenceImages,
     });
 
     // 카드뉴스 base64 → Supabase Storage 업로드 (성공 시 URL로 대체)

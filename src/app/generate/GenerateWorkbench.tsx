@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition, useRef } from "react";
+import { useEffect, useMemo, useState, useTransition, useRef } from "react";
 import Link from "next/link";
 import { generateContentAction, type GenerateResult } from "./actions";
 import type { ChannelContent } from "@/lib/gemini/generateAllChannels";
@@ -596,11 +596,55 @@ const inputStyle = {
   color: "var(--color-text)",
 };
 
+const MAX_REFERENCE_IMAGES = 6;
+
 export function GenerateWorkbench() {
   const [result, setResult] = useState<GenerateResult | null>(null);
   const [activeChannel, setActiveChannel] = useState<ChannelKey>("blogger");
   const [isPending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
+
+  // ── 카드뉴스 스타일 레퍼런스 이미지 (다중 업로드) ──
+  const [refFiles, setRefFiles] = useState<File[]>([]);
+  const refInputRef = useRef<HTMLInputElement>(null);
+
+  // state(File[]) → 실제 file input 으로 동기화. 폼 submit 시 referenceImages 로 전송됨.
+  useEffect(() => {
+    if (!refInputRef.current) return;
+    const dt = new DataTransfer();
+    for (const f of refFiles) dt.items.add(f);
+    refInputRef.current.files = dt.files;
+  }, [refFiles]);
+
+  // 미리보기 object URL — refFiles 변경 시 생성/해제
+  const refPreviews = useMemo(
+    () => refFiles.map((f) => ({ name: f.name, url: URL.createObjectURL(f) })),
+    [refFiles],
+  );
+  useEffect(() => {
+    return () => {
+      for (const p of refPreviews) URL.revokeObjectURL(p.url);
+    };
+  }, [refPreviews]);
+
+  function addRefFiles(list: FileList | null) {
+    if (!list || list.length === 0) return;
+    const incoming = Array.from(list).filter((f) => f.type.startsWith("image/"));
+    setRefFiles((prev) => {
+      const merged = [...prev];
+      for (const f of incoming) {
+        const dup = merged.some(
+          (m) => m.name === f.name && m.size === f.size,
+        );
+        if (!dup) merged.push(f);
+      }
+      return merged.slice(0, MAX_REFERENCE_IMAGES);
+    });
+  }
+
+  function removeRefFile(idx: number) {
+    setRefFiles((prev) => prev.filter((_, i) => i !== idx));
+  }
 
   function handleSubmit(formData: FormData) {
     startTransition(async () => {
@@ -698,6 +742,81 @@ export function GenerateWorkbench() {
               className={`${inputClass} resize-none`}
               style={inputStyle}
             />
+          </div>
+
+          {/* 카드뉴스 레퍼런스 이미지 (다중) */}
+          <div>
+            <label className="mb-1.5 block text-[13px] font-medium" style={{ color: "var(--color-text)" }}>
+              카드뉴스 레퍼런스 이미지{" "}
+              <span className="text-[11px] font-normal" style={{ color: "var(--color-text-faint)" }}>
+                (선택 · 최대 {MAX_REFERENCE_IMAGES}장 · 이미지당 5MB)
+              </span>
+            </label>
+            <p className="mb-2 text-[11px]" style={{ color: "var(--color-text-faint)" }}>
+              업로드한 이미지의 스타일·색감·구도를 참고해 카드뉴스 이미지를 생성합니다.
+            </p>
+
+            {/* 실제 전송용 input — DataTransfer 로 state 와 동기화 (숨김) */}
+            <input
+              ref={refInputRef}
+              name="referenceImages"
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                addRefFiles(e.target.files);
+                // 같은 파일 재선택 가능하도록 value 초기화 (state 가 출처)
+                e.target.value = "";
+              }}
+            />
+
+            <div className="flex flex-wrap gap-2.5">
+              {refPreviews.map((p, i) => (
+                <div
+                  key={`${p.name}-${i}`}
+                  className="group relative h-20 w-20 overflow-hidden rounded-lg"
+                  style={{ border: "1px solid var(--color-border)" }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={p.url}
+                    alt={p.name}
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeRefFile(i)}
+                    aria-label={`${p.name} 제거`}
+                    className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full text-[12px] font-bold text-white"
+                    style={{ backgroundColor: "rgba(0,0,0,0.6)" }}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+
+              {refFiles.length < MAX_REFERENCE_IMAGES && (
+                <button
+                  type="button"
+                  onClick={() => refInputRef.current?.click()}
+                  className="flex h-20 w-20 flex-col items-center justify-center gap-0.5 rounded-lg text-[11px] transition-colors"
+                  style={{
+                    border: "1px dashed var(--color-border-strong)",
+                    color: "var(--color-text-muted)",
+                    backgroundColor: "var(--color-surface-2)",
+                  }}
+                >
+                  <span className="text-[18px] leading-none">＋</span>
+                  이미지 추가
+                </button>
+              )}
+            </div>
+            {refFiles.length > 0 && (
+              <p className="mt-1.5 text-[11px]" style={{ color: "var(--color-text-faint)" }}>
+                {refFiles.length}장 선택됨
+              </p>
+            )}
           </div>
         </div>
 

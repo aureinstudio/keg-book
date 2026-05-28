@@ -4,6 +4,7 @@ import {
   generateCardNewsSlides,
   type CardNewsContent,
 } from "./generateCardNewsSlides";
+import type { ReferenceImage } from "./generateCardNewsImage";
 
 const FLASH_MODEL = "gemini-3-flash-preview";
 const CLAUDE_MODEL = "claude-opus-4-5";
@@ -67,6 +68,8 @@ export type GenerateAllChannelsParams = {
   context?: string;
   /** 카드뉴스 슬라이드 수 (기본 3, 0이면 생성 안 함) */
   cardNewsCount?: number;
+  /** 카드뉴스 이미지 스타일 레퍼런스 (사용자 업로드). */
+  referenceImages?: ReferenceImage[];
 };
 
 const SYSTEM_PROMPT = `당신은 코리아교육그룹(KEG) 교재 마케팅 전문 카피라이터입니다.
@@ -347,6 +350,7 @@ export async function generateAllChannels(
           targetAudience: params.targetAudience,
           context: params.context,
           count: cardNewsCount,
+          referenceImages: params.referenceImages,
         }).catch((e) => ({
           slides: [],
           error: `카드뉴스 생성 실패: ${e instanceof Error ? e.message : String(e)}`,
