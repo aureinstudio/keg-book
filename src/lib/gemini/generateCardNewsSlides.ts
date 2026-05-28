@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import {
   generateCardNewsPngBuffer,
   type ReferenceImage,
@@ -92,7 +92,28 @@ ${meta}
     config: {
       systemInstruction: SLIDE_PROMPT_SYSTEM,
       temperature: 0.8,
-      maxOutputTokens: 2048,
+      maxOutputTokens: 4096,
+      // 구조화 출력 강제 — 잘림/이스케이프 미스로 인한 JSON 파싱 실패 방지
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          slides: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                role: { type: Type.STRING, enum: ["cover", "body", "outro"] },
+                headline: { type: Type.STRING },
+                imagePrompt: { type: Type.STRING },
+              },
+              required: ["role", "headline", "imagePrompt"],
+              propertyOrdering: ["role", "headline", "imagePrompt"],
+            },
+          },
+        },
+        required: ["slides"],
+      },
     },
   });
 
